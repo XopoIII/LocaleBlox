@@ -11,8 +11,8 @@ no cloud table and nothing to upload.
 
 > **Status: 0.1.0.** Every rule is proven by specs that run on every push, and each of 73 small
 > slips in them makes the suite fail (`tests/Mutate.luau`). The whole library is plain Luau and
-> runs on LuneBlox, the Luau version Roblox runs; as a package it has not yet been required in a
-> game. Try it in a test place first.
+> runs on LuneBlox, the Luau version Roblox runs. It was required once in a real Roblox server and
+> every module answered there; no game has shipped with it yet.
 
 ## Install
 

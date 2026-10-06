@@ -47,7 +47,8 @@ same lint, with every seam to the game cut. A module reads nothing of the game i
 ### Not done
 
 - Nothing in this repository runs in Roblox. Every module is plain Luau and runs on LuneBlox, the
-  Luau version Roblox runs; the package has not yet been required in a game.
+  Luau version Roblox runs. Before this release the sources were mounted once into a test place
+  and required in a real server, where every module answered; no game has shipped with it.
 - Not ported: `Said`, which carried a server's sentence as a key and arguments in an attribute or a
   tagged instance, and the creature names with their checks. A game sends keys over its own wire.
 - `Parse.source` reads one shape of table: one `key = "value",` a line, one tab deep. A value that
