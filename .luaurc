@@ -1,0 +1,12 @@
+{
+  "languageMode": "strict",
+  "lint": {
+    "*": true
+  },
+  "lintErrors": true,
+  "typeErrors": true,
+  "aliases": {
+    "lune": "~/.luneblox/.typedefs/0.10.13/",
+    "localeblox": "./src"
+  }
+}

@@ -1,0 +1,15 @@
+name = "xopoiii/localeblox"
+version = "0.1.0"
+description = "A Roblox game's words in twenty-five languages: Luau tables looked up by key, plural forms, and the lint that keeps the tables whole"
+authors = ["XopoIII"]
+repository = "https://github.com/XopoIII/LocaleBlox"
+license = "MIT"
+includes = ["src/**", "pesde.toml", "README.md", "LICENSE"]
+
+[target]
+environment = "roblox"
+lib = "src/init.luau"
+build_files = ["src"]
+
+[indices]
+default = "https://github.com/pesde-pkg/index"
