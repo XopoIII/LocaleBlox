@@ -1,5 +1,6 @@
 --!strict
 --- Every string is whole and in its own script.
+const Locale = require("@localeblox/Locale")
 const Spec = require("../Spec")
 const Written = require("@localeblox/Written")
 
@@ -82,6 +83,11 @@ Spec.test("broken encoding is found", function()
 		"fr.a: combining accent U+0301, write the precomposed letter",
 	})
 	Spec.equal(Written.one("fr", "fr.a", E_ACUTE), {}, "the precomposed letter is fine")
+end)
+
+Spec.test("tables keyed by a locale type are checked as tables keyed by a string are", function()
+	const tables: Locale.Tables = { en = { a = "Feed" }, ru = { a = "Feed" } }
+	Spec.equal(Written.check(tables), { "ru.a: no cyrillic letter (untranslated?)" })
 end)
 
 Spec.test("check names every string of every locale, sorted", function()

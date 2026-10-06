@@ -60,6 +60,9 @@ for _, found in
 		LocaleBlox.Written.check(parsed, { keep = { "MAX" } }),
 		LocaleBlox.Written.one("ru", "ru.feed", "Feed"),
 		LocaleBlox.Usage.check(en, sources, { data = { "food", "world" } }),
+		-- and on the tables a game requires, as its spec does in Roblox
+		LocaleBlox.Lint.tables(tables),
+		LocaleBlox.Written.check(tables),
 	}
 do
 	table.move(found, 1, #found, #problems + 1, problems)
