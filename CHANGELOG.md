@@ -5,6 +5,15 @@ semantic versioning.
 
 ## Unreleased
 
+## 0.1.1 - 2026-10-06
+
+### Fixed
+
+- `Lint.tables` and `Written.check` take a game's own `Tables` as well as what `Parse.source`
+  read. In 0.1.0 their parameter was keyed by `string`, so a spec that handed them the tables it
+  requires failed the type gate under the new solver, and only a cast would pass it. The first
+  game to pin the package found it; the consumer file now makes both calls.
+
 ## 0.1.0 - 2026-10-06
 
 The locale machinery of Grabby Pit as a package: the same routing, the same plural rules and the

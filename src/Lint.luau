@@ -98,8 +98,13 @@ const function chinese(code: string, own: Table, bad: (string) -> ())
 	end
 end
 
---> The disagreements between every locale of `locales` and its English table.
-function Lint.tables(locales: Locales): { string }
+--> The disagreements between every locale and the English table. The tables are keyed by locale
+--> code: a game's own `Tables`, or what `Parse.source` read.
+function Lint.tables<Code>(given: { [Code]: Table }): { string }
+	const locales: Locales = {}
+	for code, own in given do
+		locales[tostring(code)] = own
+	end
 	const out: { string } = {}
 	const function bad(message: string)
 		table.insert(out, message)

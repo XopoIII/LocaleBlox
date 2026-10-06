@@ -1,6 +1,7 @@
 --!strict
 --- The tables agree with each other, or the lint says where they do not.
 const Lint = require("@localeblox/Lint")
+const Locale = require("@localeblox/Locale")
 const Spec = require("../Spec")
 
 const SIMPLIFIED_DOOR, TRADITIONAL_DOOR = utf8.char(0x95E8), utf8.char(0x9580)
@@ -21,6 +22,11 @@ Spec.test("tables that agree are clean", function()
 		}),
 		{}
 	)
+end)
+
+Spec.test("tables keyed by a locale type are read as tables keyed by a string are", function()
+	const tables: Locale.Tables = { en = { feed = "Feed", close = "Close" }, ru = { feed = "RU" } }
+	Spec.equal(Lint.tables(tables), { 'ru: missing key "close"' })
 end)
 
 Spec.test("no English table is one problem", function()

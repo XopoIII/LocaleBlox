@@ -139,10 +139,12 @@ function Written.one(code: string, where: string, text: string, options: Options
 	return out
 end
 
---> The problems of every string of every locale.
-function Written.check(locales: Locales, options: Options?): { string }
+--> The problems of every string of every locale. The tables are keyed by locale code: a game's
+--> own `Tables`, or what `Parse.source` read.
+function Written.check<Code>(locales: { [Code]: { [string]: string } }, options: Options?): { string }
 	const out: { string } = {}
-	for code, own in locales do
+	for given, own in locales do
+		const code = tostring(given)
 		for key, value in own do
 			for _, problem in Written.one(code, `{code}.{key}`, value, options) do
 				table.insert(out, problem)
