@@ -186,4 +186,77 @@ function Lint.plurals(en: Table, plurals: Plurals): { string }
 	return out
 end
 
+--> The faults of a kind's name tables: a locale with no table, an id a table does not name (it
+--> would show the id), two ids one name in one locale, a name that is a UI word of its locale, and
+--> a table entry that is no id of the game.
+-->
+--> `names` is the kind's names by locale code and id (`Names.Tables`, or what `Parse.source` read),
+--> `ids` every id the game has of that kind, and `ui` the game's text tables by locale code: a name
+--> that is also a word of the UI in its own locale reads as that word, not as a name. `locales`
+--> lists the locale codes that must each have a table (absent: only the tables given are looked
+--> at), and `where` is what a problem is said to be in ("names" by default).
+function Lint.names<Code, UiCode>(
+	given: { [Code]: Table },
+	ids: { string },
+	words: { [UiCode]: Table }?,
+	locales: { string }?,
+	where: string?
+): { string }
+	const place = where or "names"
+	const asked: { string } = locales or {}
+	const names: Locales = {}
+	for code, own in given do
+		names[tostring(code)] = own
+	end
+	const ui: Locales = {}
+	if words ~= nil then
+		for code, own in words do
+			ui[tostring(code)] = own
+		end
+	end
+	const known: { [string]: boolean } = {}
+	for _, id in ids do
+		known[id] = true
+	end
+
+	const out: { string } = {}
+	for _, code in asked do
+		if names[code] == nil then
+			table.insert(out, `{place}/{code}: no table`)
+		end
+	end
+	for code, own in names do
+		const taken: { [string]: string } = {}
+		const uiWords: { [string]: string } = {}
+		const ownWords = ui[code]
+		if ownWords ~= nil then
+			for key, value in ownWords do
+				uiWords[string.lower(value)] = key
+			end
+		end
+		for _, id in ids do
+			const name = own[id]
+			if name == nil or name == "" then
+				table.insert(out, `{place}/{code}.{id}: missing (it would show its id)`)
+				continue
+			end
+			if taken[name] ~= nil then
+				table.insert(out, `{place}/{code}.{id}: "{name}" is also {taken[name]}'s name`)
+			end
+			taken[name] = id
+			const word = uiWords[string.lower(name)]
+			if word ~= nil then
+				table.insert(out, `{place}/{code}.{id}: "{name}" is the same word as {code}.{word}`)
+			end
+		end
+		for id in own do
+			if not known[id] then
+				table.insert(out, `{place}/{code}.{id}: no such id`)
+			end
+		end
+	end
+	table.sort(out)
+	return out
+end
+
 return Lint

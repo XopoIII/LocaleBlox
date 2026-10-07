@@ -123,4 +123,40 @@ Spec.test("plural forms are held to English's key, placeholders and categories",
 	)
 end)
 
+Spec.test("a kind's names: every locale names every id, once, and not with a word of its UI", function()
+	const names = {
+		ru = { Goldbun = "RU goldbun", Stormpuff = "RU stormpuff", Pipkin = "RU pipkin" },
+		ja = { Goldbun = "JA goldbun", Stormpuff = "JA goldbun", Pipkin = "", Oldling = "JA oldling" },
+		de = { Goldbun = "Schliessen", Stormpuff = "DE stormpuff", Pipkin = "DE pipkin" },
+	}
+	const ids = { "Goldbun", "Stormpuff", "Pipkin" }
+	const ui = { en = { close = "Close" }, de = { close = "SCHLIESSEN" }, ru = { close = "RU close" } }
+	Spec.equal(Lint.names(names, ids, ui, { "ru", "ja", "de", "fr" }), {
+		'names/de.Goldbun: "Schliessen" is the same word as de.close',
+		"names/fr: no table",
+		"names/ja.Oldling: no such id",
+		"names/ja.Pipkin: missing (it would show its id)",
+		'names/ja.Stormpuff: "JA goldbun" is also Goldbun\'s name',
+	})
+end)
+
+Spec.test("names that are whole and apart have nothing to say", function()
+	const names = { ru = { Goldbun = "RU goldbun", Pipkin = "RU pipkin" } }
+	Spec.equal(Lint.names(names, { "Goldbun", "Pipkin" }), {})
+	Spec.equal(Lint.names(names, { "Goldbun", "Pipkin" }, nil, { "ru" }), {})
+	Spec.equal(Lint.names({}, { "Goldbun" }), {}, "no tables given, none asked for")
+end)
+
+Spec.test("a names problem says where the game keeps them, and an id the table lacks is missing", function()
+	Spec.equal(Lint.names({ ru = {} }, { "Goldbun" }, nil, nil, "petnames"), {
+		"petnames/ru.Goldbun: missing (it would show its id)",
+	})
+	-- A name is compared with its own locale's words only, whatever their case.
+	const ui = { ru = { close = "ru GOLDBUN" }, ja = { close = "RU goldbun" } }
+	Spec.equal(Lint.names({ ru = { Goldbun = "RU goldbun" } }, { "Goldbun" }, ui), {
+		'names/ru.Goldbun: "RU goldbun" is the same word as ru.close',
+	})
+	Spec.equal(Lint.names({ ru = { Goldbun = "RU goldbun" } }, { "Goldbun" }, { ja = ui.ja }), {})
+end)
+
 return nil

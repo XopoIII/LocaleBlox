@@ -56,4 +56,43 @@ Spec.test("specifiers are read in order, and an escaped percent is not one", fun
 	Spec.equal(Parse.specifiers("Feed"), {})
 end)
 
+Spec.test("a table's type may be any type written on its opening line, or none", function()
+	const source = table.concat({
+		"local names: { [string]: string } = {",
+		'\tGoldbun = "RU goldbun",',
+		"}",
+		"const plain = {",
+		'\ta = "1",',
+		"}",
+		"local dotted: Locale.Table = {",
+		'\tb = "2",',
+		"}",
+		"local generic: Map<string, string> = {",
+		'\tc = "3",',
+		"}",
+	}, "\n")
+	const out: Parse.Locales = {}
+	Parse.source(source, out, { names = "ru" })
+	Spec.equal(out, {
+		ru = { Goldbun = "RU goldbun" },
+		plain = { a = "1" },
+		dotted = { b = "2" },
+		generic = { c = "3" },
+	})
+end)
+
+Spec.test("only a line that declares one table and opens it is an opening", function()
+	Spec.equal(Parse.opens("local en: Table = {"), "en")
+	Spec.equal(Parse.opens("const en = {"), "en")
+	Spec.equal(Parse.opens("local  en  :  { [string]: string }  =  {  "), "en", "spaces do not matter")
+	Spec.equal(Parse.opens("local en: Table = {}"), nil, "opened and closed at once")
+	Spec.equal(Parse.opens("local en: Table = other"), nil, "not a table")
+	Spec.equal(Parse.opens("local a, b = {"), nil, "two names")
+	Spec.equal(Parse.opens("local en: Table = f() == {"), nil, "a comparison is not a declaration")
+	Spec.equal(Parse.opens("\tlocal en = {"), nil, "indented: not at the top")
+	Spec.equal(Parse.opens("localen = {"), nil, "local is a word")
+	Spec.equal(Parse.opens("constant = {"), nil, "const is a word")
+	Spec.equal(Parse.opens("en = {"), nil, "an assignment declares nothing")
+end)
+
 return nil

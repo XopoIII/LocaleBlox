@@ -5,10 +5,10 @@
 --- reads is looked up by a key built from them:
 ---
 ---     Keys.of("food", "sugar_cube")            --> "foodSugarCube"
----     Keys.of("product", "pay_rush", "blurb")  --> "productPayRushBlurb"
+---     Keys.of("product", "double_pay", "blurb")  --> "productDoublePayBlurb"
 const Keys = {}
 
--- "pay_rush" -> "PayRush", "Maw-Touched" -> "MawTouched", "pit lord" -> "PitLord".
+-- "double_pay" -> "DoublePay", "Half-Moon" -> "HalfMoon", "sea king" -> "SeaKing".
 const function pascal(name: string): string
 	local out = string.gsub(name, "[^%w]+(%w)", string.upper)
 	out = string.gsub(out, "[^%w]", "")

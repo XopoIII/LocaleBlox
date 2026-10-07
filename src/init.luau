@@ -3,17 +3,23 @@
 ---
 ---     const LocaleBlox = require(path.to.LocaleBlox)
 ---     const text = LocaleBlox.Text.new({ tables = Tables, plurals = Plurals, localeId = player.LocaleId })
----     label.Text = text.get("feed")
----     label.Text = text.count("piecesCarried", 3, 12)
+---     label.Text = text.get("open")
+---     label.Text = text.count("itemsCarried", 3, 12)
 ---
---- A module here reads nothing of the game it is in: the tables, the plural forms and the locale
---- id are arguments. Nothing touches `game`. `Parse`, `Lint`, `Written` and `Usage` are the lint,
---- as functions over text and tables, for a game's own scripts and specs. See README.md.
+--- A module here reads nothing of the game it is in: the tables, the plural forms, the names and
+--- the locale id are arguments. Nothing touches `game`: `Label` and `Localize`, which write on
+--- instances, are handed the instance and the collection service. `Parse`, `Lint`, `Written` and
+--- `Usage` are the lint, as functions over text and tables, for a game's own scripts and specs.
+--- See README.md.
 const Keys = require("@self/Keys")
+const Label = require("@self/Label")
 const Lint = require("@self/Lint")
 const Locale = require("@self/Locale")
+const Localize = require("@self/Localize")
+const Names = require("@self/Names")
 const Parse = require("@self/Parse")
 const Plural = require("@self/Plural")
+const Said = require("@self/Said")
 const Text = require("@self/Text")
 const Usage = require("@self/Usage")
 const Written = require("@self/Written")
@@ -29,6 +35,14 @@ export type TextOptions = Text.Options
 export type Reader = Text.Reader
 export type Parsed = Parse.Locales
 export type Source = Usage.Source
+export type NameTable = Names.Table
+export type NameTables = Names.Tables
+export type Codec = Said.Codec
+export type SaidArg = Said.Arg
+export type Sentences = Said.Said
+export type Labels = Label.Label
+export type LabelOptions = Label.Options
+export type LocalizeOptions = Localize.Options
 
 return {
 	--- A reader bound to a game's tables and one player's locale.
@@ -39,6 +53,14 @@ return {
 	Plural = Plural,
 	--- The text key of a piece of game data.
 	Keys = Keys,
+	--- The display names of a game's things, a table a locale.
+	Names = Names,
+	--- A sentence a server says as a key and its arguments.
+	Said = Said,
+	--- Server text on a replicated instance, written as a sentence.
+	Label = Label,
+	--- The client's rewrite of those labels into the reader's language.
+	Localize = Localize,
 	--- Reads tables out of a Luau source as text.
 	Parse = Parse,
 	--- Do the tables agree with each other.
