@@ -7,8 +7,8 @@ const TABLES = {
 	en = {
 		feed = "Feed",
 		level = "Lv %d",
-		movedTo = "%s's colony moved to the %s",
-		worldGarden = "Garden",
+		movedTo = "%s's camp moved to the %s",
+		zoneHarbour = "Harbour",
 		pieces = "%d / %d pieces carried off",
 		minutes = "%d min",
 		foodSugarCube = "Sugar cube",
@@ -17,7 +17,7 @@ const TABLES = {
 	ru = {
 		feed = "RU feed",
 		movedTo = "RU %s moved to %s",
-		worldGarden = "RU garden",
+		zoneHarbour = "RU harbour",
 		pieces = "RU %d of %d flat",
 		minutes = "RU %d min",
 	},
@@ -50,8 +50,8 @@ Spec.test("a missing string falls back to English, then to the key", function()
 end)
 
 Spec.test("arguments are formatted, and a key among them is looked up first", function()
-	Spec.equal(reader("en").get("movedTo", "Ann", { key = "worldGarden" }), "Ann's colony moved to the Garden")
-	Spec.equal(reader("ru").get("movedTo", "Ann", { key = "worldGarden" }), "RU Ann moved to RU garden")
+	Spec.equal(reader("en").get("movedTo", "Ann", { key = "zoneHarbour" }), "Ann's camp moved to the Harbour")
+	Spec.equal(reader("ru").get("movedTo", "Ann", { key = "zoneHarbour" }), "RU Ann moved to RU harbour")
 	Spec.equal(reader("en").get("level", 12), "Lv 12")
 end)
 
@@ -85,33 +85,33 @@ end)
 
 Spec.test("a category the forms lack falls back to other, then many", function()
 	const text = Text.new({
-		tables = { en = { ants = "%d ants" }, ar = { ants = "AR %d flat" }, pl = { ants = "PL %d flat" } },
+		tables = { en = { coins = "%d coins" }, ar = { coins = "AR %d flat" }, pl = { coins = "PL %d flat" } },
 		plurals = {
-			ar = { ants = { one = "AR %d one", other = "AR %d other" } },
-			pl = { ants = { one = "PL %d one", many = "PL %d many" } },
+			ar = { coins = { one = "AR %d one", other = "AR %d other" } },
+			pl = { coins = { one = "PL %d one", many = "PL %d many" } },
 		},
 		localeId = "ar",
 	})
-	Spec.equal(text.count("ants", 1), "AR 1 one")
-	Spec.equal(text.count("ants", 2), "AR 2 other", "no two form")
+	Spec.equal(text.count("coins", 1), "AR 1 one")
+	Spec.equal(text.count("coins", 2), "AR 2 other", "no two form")
 	const pl = Text.new({
-		tables = { en = { ants = "%d ants" }, pl = { ants = "PL %d flat" } },
-		plurals = { pl = { ants = { one = "PL %d one", many = "PL %d many" } } },
+		tables = { en = { coins = "%d coins" }, pl = { coins = "PL %d flat" } },
+		plurals = { pl = { coins = { one = "PL %d one", many = "PL %d many" } } },
 		localeId = "pl",
 	})
-	Spec.equal(pl.count("ants", 3), "PL 3 many", "no few and no other form")
+	Spec.equal(pl.count("coins", 3), "PL 3 many", "no few and no other form")
 	const both = Text.new({
-		tables = { en = { ants = "%d ants" }, pl = { ants = "PL %d flat" } },
-		plurals = { pl = { ants = { one = "PL %d one", many = "PL %d many", other = "PL %d other" } } },
+		tables = { en = { coins = "%d coins" }, pl = { coins = "PL %d flat" } },
+		plurals = { pl = { coins = { one = "PL %d one", many = "PL %d many", other = "PL %d other" } } },
 		localeId = "pl",
 	})
-	Spec.equal(both.count("ants", 3), "PL 3 other", "other comes before many")
+	Spec.equal(both.count("coins", 3), "PL 3 other", "other comes before many")
 end)
 
 Spec.test("game data reads by its key", function()
 	const en = reader("en")
 	Spec.equal(en.data("food", "sugar_cube"), "Sugar cube")
-	Spec.equal(en.data("world", "garden"), "Garden")
+	Spec.equal(en.data("zone", "harbour"), "Harbour")
 	Spec.equal(en.data("upgrade", "speed", "hint"), "faster trips")
 	Spec.equal(en.data("food", "unknown"), "foodUnknown", "the key itself when there is no text")
 end)
@@ -135,8 +135,8 @@ Spec.test("the reader says which locale it reads and whether it runs right to le
 end)
 
 Spec.test("a reader with no plural forms still counts", function()
-	const text = Text.new({ tables = { en = { ants = "%d ants" } }, localeId = "en" })
-	Spec.equal(text.count("ants", 1), "1 ants")
+	const text = Text.new({ tables = { en = { coins = "%d coins" } }, localeId = "en" })
+	Spec.equal(text.count("coins", 1), "1 coins")
 end)
 
 return nil

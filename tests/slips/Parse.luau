@@ -23,9 +23,27 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Parse.luau",
-		from = 'or string.match(line, "^const%s+',
-		to = 'or string.match(line, "^konst%s+',
+		from = 'or string.match(line, "^const(%s.*)$")',
+		to = 'or string.match(line, "^konst(%s.*)$")',
 		breaks = "a table declared with const is read",
+	},
+	{
+		file = "src/Parse.luau",
+		from = 'const TYPED = "^%s+([%w_]+)%s*:[^=]-=%s*{%s*$"',
+		to = 'const TYPED = "^%s+([%w_]+)%s*:[%w_%.]-=%s*{%s*$"',
+		breaks = "a table's type may be any type written on its opening line",
+	},
+	{
+		file = "src/Parse.luau",
+		from = 'const TYPED = "^%s+([%w_]+)%s*:[^=]-=%s*{%s*$"',
+		to = 'const TYPED = "^%s+([%w_]+)%s*:.-=%s*{%s*$"',
+		breaks = "a comparison is not a declaration",
+	},
+	{
+		file = "src/Parse.luau",
+		from = "return string.match(rest, BARE) or string.match(rest, TYPED)",
+		to = "return string.match(rest, TYPED)",
+		breaks = "a table with no type is read",
 	},
 }
 

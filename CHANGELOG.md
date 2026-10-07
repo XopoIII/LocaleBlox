@@ -5,6 +5,39 @@ semantic versioning.
 
 ## Unreleased
 
+## 0.2.0 - 2026-10-07
+
+What the first game still kept beside the package, made general: the names of a game's things, and
+a server's sentences. Nothing here names a game or one of its kinds of thing.
+
+### Added
+
+- `Names`: display names by locale and id, with `get`, `coverage` and `keys`. A locale with no
+  table, and an id its table lacks or leaves empty, show the id.
+- `Text.new` takes `names`, by kind: `{ <kind> = "<id>" }` is then an argument of `get` and
+  `count`, and `name(kind, id)` a lookup. A table argument that is neither a key nor a known thing
+  is left as it came.
+- `Text.new` takes `locale`: the table to read, used as given in place of what `localeId` resolves
+  to. For a server writing in one locale and for a spec walking every table.
+- `Said`: a sentence as a key and its arguments in one string, over the game's own codec, with
+  `encode`, `decode`, `read`, `same` and `copy`.
+- `Label` and `Localize`: a server's text on a replicated instance as a sentence, and the client's
+  rewrite of it. The instance and the collection service are arguments; neither module reads a
+  service.
+- `Lint.names`: the faults of a kind's name tables.
+- `Parse.opens(line)`, and `Parse.source` reads a table whose type is written out
+  (`local names: { [string]: string } = {`), which is the shape of a names file.
+
+### Changed
+
+- No file names a game any more: the examples and the specs' words are neutral ones.
+
+### Kept as they were, on purpose
+
+- `es-ES`, `pt-PT` and `fr-CA` have a singular, and a locale with no table counts by English's
+  rules. The first game's own copy differed in both; neither showed on its data, and these are
+  the languages' rules.
+
 ## 0.1.1 - 2026-10-06
 
 ### Fixed
@@ -16,7 +49,7 @@ semantic versioning.
 
 ## 0.1.0 - 2026-10-06
 
-The locale machinery of Grabby Pit as a package: the same routing, the same plural rules and the
+The locale machinery of a live game as a package: the same routing, the same plural rules and the
 same lint, with every seam to the game cut. A module reads nothing of the game it is in.
 
 ### Added
@@ -40,15 +73,15 @@ same lint, with every seam to the game cut. A module reads nothing of the game i
   starts with an Arabic letter and holds no Latin word.
 - `Usage.check`: the code and the English table name the same keys.
 
-### Changed from Grabby Pit's copy
+### Changed from the game's own copy
 
 - The reader is made by `Text.new(options)` from a LocaleId, in place of a module that read
   `Players.LocalPlayer` and a `DevLocale` attribute of Workspace when it loaded.
 - The lint is functions over text and tables that return their problems, in place of three scripts
   that read a fixed folder and exited. The Latin a game keeps on purpose and the first words of
-  its data keys are options, in place of lists that named Grabby Pit's.
+  its data keys are options, in place of lists that named that game's.
 - The three regional locales count as their languages do: `fr-CA` counts zero with one, and `es-ES`
-  and `pt-PT` have a singular. In Grabby Pit's copy they had one form.
+  and `pt-PT` have a singular. In the game's own copy they had one form.
 - A locale that ships no table counts in English by English's rules, when English has forms.
 - `Lint.tables` names a Chinese glyph of the wrong script by its code point.
 - `Locale.router` refuses tables without English by name, in place of failing at the first lookup.
@@ -60,6 +93,7 @@ same lint, with every seam to the game cut. A module reads nothing of the game i
   and required in a real server, where every module answered; no game has shipped with it.
 - Not ported: `Said`, which carried a server's sentence as a key and arguments in an attribute or a
   tagged instance, and the creature names with their checks. A game sends keys over its own wire.
+  (Both came in 0.2.0, made general: `Said`, `Label`, `Localize` and `Names`.)
 - `Parse.source` reads one shape of table: one `key = "value",` a line, one tab deep. A value that
   spans lines or is built by an expression is not read.
 - `Usage.check` knows a key by its shape, a lowercase word and then a capital. A key that is one

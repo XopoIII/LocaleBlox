@@ -4,18 +4,33 @@
 --- A game's lint runs off Roblox and cannot always `require` its tables, so it reads them as text.
 --- That fixes their shape: a table opens with `local name: Type = {` (or `const`) on a line of its
 --- own, holds one `\tkey = "value",` per line, and closes with `}` at the start of a line. A value
---- is taken as written, escapes included. A carriage return before the line end is ignored.
+--- is taken as written, escapes included. A carriage return before the line end is ignored. The
+--- type may be any type written on that one line (`Table`, `Locale.Table`, `{ [string]: string }`),
+--- or absent.
 const Parse = {}
 
 export type Locales = { [string]: { [string]: string } }
+
+-- A table's opening line with no type, and with one: the type is whatever stands between the colon
+-- and the equals sign.
+const BARE = "^%s+([%w_]+)%s*=%s*{%s*$"
+const TYPED = "^%s+([%w_]+)%s*:[^=]-=%s*{%s*$"
+
+--> The name of the table a line opens, or nil when it opens none.
+function Parse.opens(line: string): string?
+	const rest = string.match(line, "^local(%s.*)$") or string.match(line, "^const(%s.*)$")
+	if rest == nil then
+		return nil
+	end
+	return string.match(rest, BARE) or string.match(rest, TYPED)
+end
 
 --> Adds every table of `source` to `out`, as `out[code][key] = value`. A table's variable name is
 --> its locale code unless `aliases` renames it (`zhHans` to "zh-hans").
 function Parse.source(source: string, out: Locales, aliases: { [string]: string }?)
 	local current: string? = nil
 	for line in string.gmatch(source .. "\n", "(.-)\n") do
-		const name = string.match(line, "^local%s+([%w_]+)%s*:?%s*[%w_%.]*%s*=%s*{%s*$")
-			or string.match(line, "^const%s+([%w_]+)%s*:?%s*[%w_%.]*%s*=%s*{%s*$")
+		const name = Parse.opens(line)
 		if name ~= nil then
 			const code = if aliases ~= nil and aliases[name] ~= nil then aliases[name] else name
 			current = code

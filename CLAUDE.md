@@ -2,7 +2,7 @@
 
 LocaleBlox is a locale kit for Roblox: a game's words as Luau tables looked up by key, in
 twenty-five languages, with plural forms and the lint that keeps the tables whole. It was extracted
-from the game Grabby Pit and is used by the owner's games as a pinned pesde package
+from a live game and is used by the owner's games as a pinned pesde package
 (`xopoiii/localeblox`, target `roblox`).
 
 ## Everything here is written in English
@@ -29,7 +29,9 @@ This is the reason the package exists, and the rule a change is checked against 
   names of its data are **arguments**. No module requires anything outside `src/`, reads a player,
   an attribute or a file, or names a game's Instance.
 - Nothing touches `game`, at require time or later: every module is plain Luau, so the whole
-  library runs on LuneBlox and a game's lint can call it off Roblox.
+  library runs on LuneBlox and a game's lint can call it off Roblox. `Label` and `Localize` write
+  on instances, and are handed them: the instance, the collection service and the JSON codec are
+  arguments, typed loosely, and the specs hand in fakes (`tests/fakes/World.luau`).
 - No game's content lands here: no string a player reads, no game's name in code.
 
 ## Rules are proven, not argued
@@ -68,6 +70,9 @@ This is the reason the package exists, and the rule a change is checked against 
 - `Locale`: a LocaleId to a locale, and the lookup with its fallbacks. `Plural`: the category of a
   count. `Keys`: the key of a piece of game data.
 - `Text`: the reader a client draws every word through, made from tables and a LocaleId.
+- `Names`: the display names of a game's things, a table a locale; the reader resolves them.
+- `Said`: a server's sentence as a key and arguments. `Label` writes one on an instance,
+  `Localize` rewrites it on the client.
 - `Parse`, `Lint`, `Written`, `Usage`: the lint, as functions that return their problems.
 - `init.luau` exposes the modules and re-exports their types.
 

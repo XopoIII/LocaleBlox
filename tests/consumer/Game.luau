@@ -8,15 +8,15 @@ const LocaleBlox = require("@localeblox")
 -- The game's own tables stay in the game.
 const en: LocaleBlox.Table = {
 	feed = "Feed",
-	movedTo = "%s's colony moved to the %s",
-	worldGarden = "Garden",
+	movedTo = "%s's camp moved to the %s",
+	zoneHarbour = "Harbour",
 	pieces = "%d / %d pieces carried off",
 	foodSugarCube = "Sugar cube",
 }
 const ru: LocaleBlox.Table = {
 	feed = "RU feed",
 	movedTo = "RU %s moved to %s",
-	worldGarden = "RU garden",
+	zoneHarbour = "RU harbour",
 	pieces = "RU %d of %d",
 	foodSugarCube = "RU sugar",
 }
@@ -28,13 +28,56 @@ const plurals: LocaleBlox.Plurals = {
 -- One reader per client, from the player's LocaleId.
 const text: LocaleBlox.Reader = LocaleBlox.Text.new({ tables = tables, plurals = plurals, localeId = "ru-ru" })
 const _feed: string = text.get("feed")
-const _moved: string = text.get("movedTo", "Ann", { key = "worldGarden" })
+const _moved: string = text.get("movedTo", "Ann", { key = "zoneHarbour" })
 const _pieces: string = text.count("pieces", 3, 12)
 const _food: string = text.data("food", "sugar_cube")
 const _known: boolean = text.has("feed")
 const _locale: LocaleBlox.Locale = text.locale()
 const _id: string = text.localeId()
 const _mirror: boolean = text.isRtl()
+
+-- The names of the game's things, a table a locale, and a reader that resolves them.
+const pets: LocaleBlox.NameTables = { ru = { Goldbun = "RU goldbun" } }
+const named: LocaleBlox.Reader = LocaleBlox.Text.new({
+	tables = tables,
+	names = { pet = pets },
+	localeId = "ru-ru",
+	locale = "ru",
+})
+const _hatched: string = named.get("movedTo", { pet = "Goldbun" }, { key = "zoneHarbour" })
+const _pet: string = named.name("pet", "Goldbun")
+const _plain: string = LocaleBlox.Names.get(pets, "ru", "Goldbun")
+const _coverage: number = #LocaleBlox.Names.coverage(pets, { "Goldbun" })
+const _named: { [string]: { LocaleBlox.Locale } } = LocaleBlox.Names.keys(pets)
+
+-- A server's sentence, its label on an instance, and the client's rewrite. On Roblox the codec is
+-- HttpService's JSON pair and the collection is CollectionService.
+const codec: LocaleBlox.Codec = {
+	encode = function(_value: any): string
+		return "{}"
+	end,
+	decode = function(_text: string): any
+		return {}
+	end,
+}
+const said: LocaleBlox.Sentences = LocaleBlox.Said.new(codec)
+const args: { LocaleBlox.SaidArg } = { "Ann", { pet = "Goldbun" }, 3 }
+const wire: string = said.encode("movedTo", args)
+const _read: string = said.read(named, wire)
+const _same: boolean = said.same("movedTo", args, "movedTo", said.copy(args))
+const _saidKey: string?, _saidArgs: { any } = said.decode(wire)
+const labelOptions: LocaleBlox.LabelOptions = { said = said, english = text, tag = "Localized", prefix = "Said_" }
+const label: LocaleBlox.Labels = LocaleBlox.Label.new(labelOptions)
+const _english: string = label.english("movedTo", args)
+const sign = Instance.new("TextLabel")
+label.set(sign, "Text", "movedTo", args)
+label.plain(sign, "Text", "1,250")
+const localizeOptions: LocaleBlox.LocalizeOptions = {
+	said = said,
+	text = named,
+	collection = game:GetService("CollectionService"),
+}
+LocaleBlox.Localize.start(localizeOptions)
 
 -- The pieces on their own.
 const router: LocaleBlox.Router = LocaleBlox.Locale.router(tables)
@@ -57,9 +100,10 @@ for _, found in
 	{
 		LocaleBlox.Lint.tables(parsed),
 		LocaleBlox.Lint.plurals(en, plurals),
+		LocaleBlox.Lint.names(pets, { "Goldbun" }, tables, { "ru" }, "petnames"),
 		LocaleBlox.Written.check(parsed, { keep = { "MAX" } }),
 		LocaleBlox.Written.one("ru", "ru.feed", "Feed"),
-		LocaleBlox.Usage.check(en, sources, { data = { "food", "world" } }),
+		LocaleBlox.Usage.check(en, sources, { data = { "food", "zone" } }),
 		-- and on the tables a game requires, as its spec does in Roblox
 		LocaleBlox.Lint.tables(tables),
 		LocaleBlox.Written.check(tables),

@@ -5,8 +5,8 @@ const Mutant = require("./Mutant")
 const MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Text.luau",
-		from = "args[index] = router.get(locale, arg.key)",
-		to = "args[index] = arg.key",
+		from = "return router.get(locale, arg.key)",
+		to = "return arg.key",
 		breaks = "an argument that is a key is looked up",
 	},
 	{
@@ -53,8 +53,8 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Text.luau",
-		from = "return get(Keys.of(kind, name, field))",
-		to = "return get(Keys.of(kind, name))",
+		from = "return get(Keys.of(kind, id, field))",
+		to = "return get(Keys.of(kind, id))",
 		breaks = "game data reads by its key",
 	},
 }
