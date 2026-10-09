@@ -19,6 +19,7 @@ for _, list in
 		require("./slips/Lint"),
 		require("./slips/Written"),
 		require("./slips/Usage"),
+		require("./slips/Frozen"),
 	} :: { { Mutant } }
 do
 	table.move(list, 1, #list, #MUTANTS + 1, MUTANTS)

@@ -57,6 +57,19 @@ Spec.test("a string with no letters is clean anywhere", function()
 	Spec.equal(Written.one("ru", "ru.a", "x%s R$ Robux Roblox %s"), {}, "the tokens kept everywhere")
 end)
 
+Spec.test("a specifier is the one the lint reads, not any letter after a percent", function()
+	Spec.equal(Written.one("ar", "ar.a", ARABIC .. " 50% Robux"), {}, "a percent of plain text takes no letter")
+	Spec.equal(Written.one("ru", "ru.a", CYRILLIC .. " 50% Roblox"), {})
+	Spec.equal(
+		Written.one("ar", "ar.a", ARABIC .. " %p"),
+		{ "ar.a: Latin words inside right-to-left text" },
+		"string.format has no %p: the letter is a letter"
+	)
+	Spec.equal(Written.one("ar", "ar.a", ARABIC .. " %* %5.1f %-3d %q"), {}, "every conversion it has is kept")
+	Spec.equal(Written.one("ar", "ar.a", ARABIC .. " x%*"), {}, "a multiplier takes any specifier the lint reads")
+	Spec.equal(Written.one("ar", "ar.a", ARABIC .. " x%.1f"), {})
+end)
+
 Spec.test("Arabic starts with an Arabic letter and holds no Latin word", function()
 	Spec.equal(Written.one("ar", "ar.a", ARABIC .. " %d"), {})
 	Spec.equal(Written.one("ar", "ar.a", "%d " .. ARABIC), {}, "a number may lead")

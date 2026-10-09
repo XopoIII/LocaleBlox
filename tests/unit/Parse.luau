@@ -48,6 +48,12 @@ Spec.test("two sources add up, and Windows line ends are read", function()
 	Spec.equal(out, { en = { feed = "Feed", close = "Close" }, ru = { feed = "RU" } })
 end)
 
+Spec.test("a table declared with const is read", function()
+	local out: Parse.Locales = {}
+	Parse.source('const en: Table = {\n\tfeed = "Feed",\n}\nconst ru = {\n\tfeed = "RU",\n}\n', out)
+	Spec.equal(out, { en = { feed = "Feed" }, ru = { feed = "RU" } })
+end)
+
 Spec.test("specifiers are read in order, and an escaped percent is not one", function()
 	Spec.equal(Parse.specifiers("%d / %d pieces"), { "%d", "%d" })
 	Spec.equal(Parse.specifiers("%s moved to %s in %.2f s"), { "%s", "%s", "%.2f" })
@@ -55,6 +61,46 @@ Spec.test("specifiers are read in order, and an escaped percent is not one", fun
 	Spec.equal(Parse.specifiers("%d%% of %s"), { "%d", "%s" })
 	Spec.equal(Parse.specifiers("Feed"), {})
 	Spec.equal(Parse.specifiers("Save 50% today"), {}, "a lone percent of plain text is not one")
+end)
+
+Spec.test("a specifier is what string.format takes, no more and no less", function()
+	-- Every ASCII letter is asked of the VM itself, so the list cannot drift from the VM's own.
+	local taken: { string } = {}
+	for byte = 0x41, 0x7A do
+		local letter = string.char(byte)
+		if string.match(letter, "%a") == nil then
+			continue
+		end
+		local format = "%" .. letter
+		local ok = pcall(string.format, format, 65) or pcall(string.format, format, "A")
+		Spec.equal(Parse.specifiers(`a {format} b`), if ok then { format } else {}, format)
+		if ok then
+			table.insert(taken, letter)
+		end
+	end
+	Spec.equal(table.concat(taken), "EGXcdefgioqsux")
+	Spec.equal(Parse.SPECIFIER, "%%[-+ #0-9%.]*[cdeEfgGioqsuxX*]")
+
+	Spec.equal(Parse.specifiers("%p of %s"), { "%s" }, "%p is refused by string.format")
+	Spec.equal((pcall(string.format, "%p", 1)), false)
+	Spec.equal(Parse.specifiers("%a and %n"), {}, "so are %a and %n")
+	Spec.equal(Parse.specifiers("%* / %*"), { "%*", "%*" }, "%* writes any value")
+	Spec.equal(string.format("%* / %*", 3, "many"), "3 / many")
+	Spec.equal(Parse.specifiers("%5.1f%% %-3d %+i %#x %05u %o %q %c %e %E %g %G %X"), {
+		"%5.1f",
+		"%-3d",
+		"%+i",
+		"%#x",
+		"%05u",
+		"%o",
+		"%q",
+		"%c",
+		"%e",
+		"%E",
+		"%g",
+		"%G",
+		"%X",
+	})
 end)
 
 Spec.test("a table's type may be any type written on its opening line, or none", function()
@@ -85,6 +131,10 @@ end)
 Spec.test("only a line that declares one table and opens it is an opening", function()
 	Spec.equal(Parse.opens("local en: Table = {"), "en")
 	Spec.equal(Parse.opens("local en = {"), "en")
+	Spec.equal(Parse.opens("const en: Table = {"), "en", "const declares a table as local does")
+	Spec.equal(Parse.opens("const en = {"), "en")
+	Spec.equal(Parse.opens("constant = {"), nil, "const is a word")
+	Spec.equal(Parse.opens("consten = {"), nil, "const is a word")
 	Spec.equal(Parse.opens("local  en  :  { [string]: string }  =  {  "), "en", "spaces do not matter")
 	Spec.equal(Parse.opens("local en: Table = {}"), nil, "opened and closed at once")
 	Spec.equal(Parse.opens("local en: Table = other"), nil, "not a table")

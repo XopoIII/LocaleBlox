@@ -41,9 +41,21 @@ local MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Written.luau",
-		from = '"x%%[-+ #0-9%.]*%a", "x%d+", ',
+		from = '"x" .. Parse.SPECIFIER, "x%d+", ',
 		to = "",
 		breaks = "a multiplier is kept in every language",
+	},
+	{
+		file = "src/Written.luau",
+		from = '"x%d+", Parse.SPECIFIER, "R%$"',
+		to = '"x%d+", "%%[-+ #0-9%.]*%a", "R%$"',
+		breaks = "a specifier is the one the lint reads, not any letter after a percent",
+	},
+	{
+		file = "src/Written.luau",
+		from = '"x" .. Parse.SPECIFIER, "x%d+"',
+		to = '"x%%[-+ #0-9%.]*%a", "x%d+"',
+		breaks = "a multiplier takes any specifier the lint reads",
 	},
 	{
 		file = "src/Written.luau",

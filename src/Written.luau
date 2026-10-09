@@ -9,6 +9,8 @@
 ---
 --- Latin kept on purpose in every language is named by the game as `keep` patterns; format
 --- specifiers, multipliers ("x2"), "R$", "Robux" and "Roblox" are always kept.
+local Parse = require("./Parse")
+
 local Written = {}
 
 type Range = { number }
@@ -43,7 +45,7 @@ local NATIVE: { [string]: { string } } = {
 }
 
 -- Multipliers go first, so "x%s" is taken whole before its specifier is.
-local ALWAYS_KEPT = { "x%%[-+ #0-9%.]*%a", "x%d+", "%%[-+ #0-9%.]*%a", "R%$", "Robux", "Roblox" }
+local ALWAYS_KEPT = { "x" .. Parse.SPECIFIER, "x%d+", Parse.SPECIFIER, "R%$", "Robux", "Roblox" }
 
 local function scriptOf(point: number): string?
 	for name, ranges in SCRIPTS do
