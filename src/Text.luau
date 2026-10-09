@@ -116,7 +116,7 @@ function Text.new(options: Options): Reader
 		-- rather than raising on the client: a missing key with a `%` in it, a translation a
 		-- lint did not see. The lint (`Lint`) is the gate; this is the safety net.
 		--
-		-- One argument and two are the calls a game makes most, and are formatted without a
+		-- Up to three arguments are the calls a game makes most, and are formatted without a
 		-- table made to hold them.
 		local ok: boolean, text: string
 		if count == 1 then
@@ -134,6 +134,18 @@ function Text.new(options: Options): Reader
 				second = word(second) or second
 			end
 			ok, text = pcall(string.format, template, first, second)
+		elseif count == 3 then
+			local one, two, three = ...
+			if type(one) == "table" then
+				one = word(one) or one
+			end
+			if type(two) == "table" then
+				two = word(two) or two
+			end
+			if type(three) == "table" then
+				three = word(three) or three
+			end
+			ok, text = pcall(string.format, template, one, two, three)
 		else
 			local args = table.pack(...)
 			resolve(args, count)
@@ -173,6 +185,15 @@ function Text.new(options: Options): Reader
 				other = word(other) or other
 			end
 			fits, sentence = pcall(string.format, template, n, other)
+		elseif extra == 2 then
+			local nearer, further = ...
+			if type(nearer) == "table" then
+				nearer = word(nearer) or nearer
+			end
+			if type(further) == "table" then
+				further = word(further) or further
+			end
+			fits, sentence = pcall(string.format, template, n, nearer, further)
 		else
 			local args = table.pack(...)
 			resolve(args, extra)

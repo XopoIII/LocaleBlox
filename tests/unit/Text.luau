@@ -18,6 +18,8 @@ local TABLES = {
 		trio = "%s, %s and %s",
 		owned = "%d of %s",
 		shared = "%d of %s and %s",
+		four = "%s, %s, %s and %s",
+		crowd = "%d of %s, %s and %s",
 	},
 	ru = {
 		feed = "RU feed",
@@ -80,6 +82,10 @@ Spec.test("a key is looked up wherever it stands, among one argument, two, three
 	Spec.equal(ru.count("owned", 2, "Ann"), "2 of Ann")
 	Spec.equal(ru.count("shared", 2, { key = "feed" }, "Ann"), "2 of RU feed and Ann")
 	Spec.equal(ru.count("shared", 2, "Ann", { key = "feed" }), "2 of Ann and RU feed")
+	Spec.equal(ru.get("four", { key = "feed" }, "b", "c", { key = "zoneHarbour" }), "RU feed, b, c and RU harbour")
+	Spec.equal(ru.get("four", "a", { key = "feed" }, { key = "feed" }, "d"), "a, RU feed, RU feed and d")
+	Spec.equal(ru.count("crowd", 2, { key = "feed" }, "b", { key = "zoneHarbour" }), "2 of RU feed, b and RU harbour")
+	Spec.equal(ru.count("crowd", 2, "a", { key = "feed" }, "c"), "2 of a, RU feed and c")
 end)
 
 Spec.test("an argument the format cannot take gives the bare template, in every place", function()
@@ -97,7 +103,14 @@ Spec.test("an argument the format cannot take gives the bare template, in every 
 	Spec.equal(en.get("greet", { key = 5 }), "Hi %s", "a key is a string")
 	Spec.equal(en.get("movedTo", {}, "x"), "%s's camp moved to the %s", "first of two")
 	Spec.equal(en.get("movedTo", "x", {}), "%s's camp moved to the %s", "second of two")
-	Spec.equal(en.get("trio", "a", {}, "c"), "%s, %s and %s", "among three")
+	Spec.equal(en.get("trio", {}, "b", "c"), "%s, %s and %s", "first of three")
+	Spec.equal(en.get("trio", "a", {}, "c"), "%s, %s and %s", "second of three")
+	Spec.equal(en.get("trio", "a", "b", {}), "%s, %s and %s", "third of three")
+	Spec.equal(en.get("four", "a", "b", {}, "d"), "%s, %s, %s and %s", "among four")
+	Spec.equal(en.get("four", "a", "b", "c"), "%s, %s, %s and %s", "one short of four")
+	Spec.equal(en.count("shared", 2, {}, "Ann"), "%d of %s and %s", "first after a count")
+	Spec.equal(en.count("crowd", 2, "a", {}, "c"), "%d of %s, %s and %s", "among three after a count")
+	Spec.equal(en.count("crowd", 2, "a", "b"), "%d of %s, %s and %s", "a count one short of three more")
 	Spec.equal(en.count("owned", 2, {}), "%d of %s", "after a count")
 	Spec.equal(en.count("shared", 2, "Ann", {}), "%d of %s and %s", "after a count and one more")
 end)

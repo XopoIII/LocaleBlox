@@ -42,8 +42,9 @@ first game's twenty-five tables every answer of the two versions was compared, a
 
 ### Faster
 
-- A sentence with one or two arguments, and a count with none or one beside it, are formatted
-  without a table made to hold the arguments. The lookup of a key alone is as it was.
+- A sentence with up to three arguments, and a count with up to two beside it, are formatted
+  without a table made to hold the arguments. With more, the call is 0.2.0's with the guard
+  around it. The lookup of a key alone is as it was.
 - `Usage.check` walks a source once with plain searches; over the first game's 534 files it costs
   what 0.2.0's did, with the comments now left out.
 
