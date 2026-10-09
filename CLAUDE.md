@@ -57,9 +57,10 @@ This is the reason the package exists, and the rule a change is checked against 
 
 ## Modern Luau: the version Roblox runs
 
-- **Stock Luau only.** `local` for every binding; no keyword or syntax a stock Luau VM would not
-  parse. The package targets Roblox, and Roblox runs stock Luau: a file that only LuneBlox's
-  dialect accepts is a file no game can load.
+- **`local` for every binding.** Luau reads `const` too, and 0.2.0 was written with it and ran in
+  a live Roblox game, so this is a choice of style and not a fix: one keyword for a binding, read
+  by every version of Luau and of its tools. No syntax is used that Roblox's own Luau does not
+  parse; LuneBlox runs that same Luau, and a spec that passes here is the evidence.
 - **String requires**: `require("./Sibling")` between modules and `require("@self/Module")` in
   `init.luau`, so the same files load in Roblox and on LuneBlox.
 - **The new type solver.** `scripts/type-check.sh` runs luau-lsp with `LuauSolverV2`, as Studio

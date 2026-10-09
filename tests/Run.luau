@@ -20,5 +20,6 @@ require("./unit/Parse")
 require("./unit/Lint")
 require("./unit/Written")
 require("./unit/Usage")
+require("./unit/Frozen")
 
 Spec.finish()

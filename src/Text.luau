@@ -104,14 +104,6 @@ function Text.new(options: Options): Reader
 		end
 	end
 
-	-- A sentence whose arguments do not fit its placeholders reads as its bare template rather
-	-- than raising on the client: a missing key with a `%` in it, a translation a lint did not
-	-- see. The lint (`Lint`) is the gate; this is the safety net.
-	local function format(template: string, ...: any): string
-		local ok, text = pcall(string.format, template, ...)
-		return if ok then text else template
-	end
-
 	local function get(key: string, ...: any): string
 		local template = router.get(locale, key)
 		local count = select("#", ...)
@@ -120,9 +112,34 @@ function Text.new(options: Options): Reader
 			-- stay as written.
 			return template
 		end
-		local args = table.pack(...)
-		resolve(args, count)
-		return format(template, table.unpack(args, 1, count))
+		-- A sentence whose arguments do not fit its placeholders reads as its bare template
+		-- rather than raising on the client: a missing key with a `%` in it, a translation a
+		-- lint did not see. The lint (`Lint`) is the gate; this is the safety net.
+		--
+		-- One argument and two are the calls a game makes most, and are formatted without a
+		-- table made to hold them.
+		local ok: boolean, text: string
+		if count == 1 then
+			local only = ...
+			if type(only) == "table" then
+				only = word(only) or only
+			end
+			ok, text = pcall(string.format, template, only)
+		elseif count == 2 then
+			local first, second = ...
+			if type(first) == "table" then
+				first = word(first) or first
+			end
+			if type(second) == "table" then
+				second = word(second) or second
+			end
+			ok, text = pcall(string.format, template, first, second)
+		else
+			local args = table.pack(...)
+			resolve(args, count)
+			ok, text = pcall(string.format, template, table.unpack(args, 1, count))
+		end
+		return if ok then text else template
 	end
 
 	-- The forms of a key: this locale's, else English's, so an untranslated count still agrees.
@@ -140,14 +157,28 @@ function Text.new(options: Options): Reader
 
 	local function count(key: string, n: number, ...: any): string
 		local extra = select("#", ...)
-		local args = table.pack(...)
-		resolve(args, extra)
-		local template: string? = nil
+		local form: string? = nil
 		local found, ruled = forms(key)
 		if found ~= nil then
-			template = found[Plural.category(ruled, n)] or found.other or found.many or found.one
+			form = found[Plural.category(ruled, n)] or found.other or found.many or found.one
 		end
-		return format(template or router.get(locale, key), n, table.unpack(args, 1, extra))
+		local template = form or router.get(locale, key)
+		-- As in `get`: a count its sentence cannot take reads as the bare template.
+		local fits: boolean, sentence: string
+		if extra == 0 then
+			fits, sentence = pcall(string.format, template, n)
+		elseif extra == 1 then
+			local other = ...
+			if type(other) == "table" then
+				other = word(other) or other
+			end
+			fits, sentence = pcall(string.format, template, n, other)
+		else
+			local args = table.pack(...)
+			resolve(args, extra)
+			fits, sentence = pcall(string.format, template, n, table.unpack(args, 1, extra))
+		end
+		return if fits then sentence else template
 	end
 
 	return {

@@ -3,25 +3,55 @@
 Every release is listed here, newest first. The format follows Keep a Changelog, and versions follow
 semantic versioning.
 
-## Unreleased
+## 0.3.0 - 2026-10-09
+
+A reader that never raises, a lint that reads code as code, and the same words as 0.2.0: on the
+first game's twenty-five tables every answer of the two versions was compared, and none differ.
 
 ### Changed
 
-- Every module is stock Luau again: `const` is not a Luau keyword, and a file only a dialect
-  parsed was a file no Roblox game could load.
-- Every module table is frozen.
+- `Text.get` and `Text.count` never raise. Arguments that do not fit the placeholders (a `%d`
+  handed a word, an argument short, a `nil`) give the bare template back; in 0.2.0 the call
+  raised. A game that caught that error to learn of a bad sentence no longer hears of it: nothing
+  reports the failure yet (issue #4), and the lint stays the gate.
+- `Plural.category`: a fractional count is "other" in every locale (CLDR: a fraction agrees with
+  no noun); it was rounded down before. Whole counts are as they were.
+- `Usage.check` reads code as code. A key may stand in single quotes or backticks as well as in
+  double quotes, and a comment is not read: `--` to the end of its line, and a `--[[ ]]` or
+  `--[=[ ]=]` block. A name in a comment is no longer judged, and a key that only a comment names
+  is no longer counted as used. Two dashes inside a string open no comment.
+- `Parse.specifiers`, and the specifiers `Written` leaves out of its script check, are the ones
+  Luau's `string.format` takes: a conversion of `c d e E f g G i o q s u x X`, or `*`. A lone `%`
+  of plain text ("Save 50% today") is no longer a specifier, and neither is `%p` or any other
+  letter the VM refuses; `%*` now is one. In 0.2.0 both took any letter after a percent.
+- Every module table is frozen, and so is the table the package returns. A reader is still the
+  caller's own table.
+- The sources are written with `local` for every binding; 0.2.0 used `const`. Luau reads both,
+  and 0.2.0 ran in a live game as it was, so nothing changes for a game that installs the
+  package. `Parse.opens` and `Parse.source` read a table declared with either word.
+
+### Added
+
+- `Parse.SPECIFIER`: the Lua pattern of one `string.format` specifier, the one `Parse`, `Lint`
+  and `Written` share.
 
 ### Fixed
 
-- `Text.get` and `Text.count`: arguments that do not fit the placeholders give the bare template
-  back rather than raising on the client.
-- `Plural.category`: a fractional count is "other" in every locale (CLDR: a fraction agrees with
-  no noun); it was rounded down before.
-- `Parse.specifiers`: a lone `%` of plain text ("Save 50% today") is no longer read as a
-  specifier; the conversion letter must be one `string.format` knows.
-- `Usage.check` sees keys in single quotes and in backtick strings, not only in double quotes.
 - `Localize` drops a label's listeners when its instance is destroyed, instead of holding a dead
   instance's connections.
+
+### Faster
+
+- A sentence with one or two arguments, and a count with none or one beside it, are formatted
+  without a table made to hold the arguments. The lookup of a key alone is as it was.
+- `Usage.check` walks a source once with plain searches; over the first game's 534 files it costs
+  what 0.2.0's did, with the comments now left out.
+
+### Known, not fixed
+
+- A sentence that does not fit shows its bare template and nothing reports it (issue #4).
+- `Usage.check` walks strings to tell a comment from text, and does not follow a backtick string
+  nested inside another's `{}`; a `--` after such a nesting may be read on the wrong side.
 
 ## 0.2.0 - 2026-10-07
 

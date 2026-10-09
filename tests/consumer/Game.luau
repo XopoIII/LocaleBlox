@@ -94,6 +94,8 @@ local _key: string = LocaleBlox.Keys.of("food", "sugar_cube", "hint")
 local parsed: LocaleBlox.Parsed = {}
 LocaleBlox.Parse.source('local en = {\n\tfeed = "Feed",\n}', parsed, { zhHans = "zh-hans" })
 local _specifiers: { string } = LocaleBlox.Parse.specifiers("%d / %d")
+local _specifier: string = LocaleBlox.Parse.SPECIFIER
+local _opened: string? = LocaleBlox.Parse.opens("local en = {")
 local sources: { LocaleBlox.Source } = { { path = "src/client/Hud.luau", text = 'text.get("feed")' } }
 local problems: { string } = {}
 for _, found in

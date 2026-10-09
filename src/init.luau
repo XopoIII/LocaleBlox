@@ -44,7 +44,7 @@ export type Labels = Label.Label
 export type LabelOptions = Label.Options
 export type LocalizeOptions = Localize.Options
 
-return {
+return table.freeze({
 	--- A reader bound to a game's tables and one player's locale.
 	Text = Text,
 	--- Which table a LocaleId reads, and the lookup with its fallbacks.
@@ -69,4 +69,4 @@ return {
 	Written = Written,
 	--- Do the code and the English table name the same keys.
 	Usage = Usage,
-}
+})

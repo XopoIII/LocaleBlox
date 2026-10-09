@@ -9,10 +9,10 @@ formats a key into a sentence, makes a noun agree with its number, and checks th
 holds every key with the same placeholders, in its own script. There is no `LocalizationService`,
 no cloud table and nothing to upload.
 
-> **Status: 0.2.0.** Every rule is proven by specs that run on every push, and each of 132 small
+> **Status: 0.3.0.** Every rule is proven by specs that run on every push, and each of 178 small
 > slips in them makes the suite fail (`tests/Mutate.luau`). The whole library is plain Luau and
-> runs on LuneBlox, the Luau version Roblox runs. It was required once in a real Roblox server and
-> every module answered there; no game has shipped with it yet.
+> runs on LuneBlox, the Luau version Roblox runs. One game has run on it live since 0.2.0; before
+> each release its own tables and lint are run against the new sources and compared with the old.
 
 ## Install
 
@@ -24,7 +24,7 @@ or pin it exactly in `pesde.toml`:
 
 ```toml
 [dependencies]
-LocaleBlox = { name = "xopoiii/localeblox", version = "=0.2.0", target = "roblox" }
+LocaleBlox = { name = "xopoiii/localeblox", version = "=0.3.0", target = "roblox" }
 ```
 
 LocaleBlox has no dependencies. It reads no Roblox service, so the same modules load on the
@@ -75,8 +75,8 @@ locale, a spec walking every table) and is used as given.
 
 | Function | What it returns |
 |---|---|
-| `get(key, ...)` | The string for `key`, formatted with `string.format` when arguments follow. An argument `{ key = "..." }` is looked up first, and so is `{ <kind> = "<id>" }` for a kind given in `names`, so a translated sentence never gets an English word in a slot. With no arguments the template is returned as written. |
-| `count(key, n, ...)` | A sentence whose noun agrees with `n`, which is the first format argument. Without forms for the key it is the flat string. |
+| `get(key, ...)` | The string for `key`, formatted with `string.format` when arguments follow. An argument `{ key = "..." }` is looked up first, and so is `{ <kind> = "<id>" }` for a kind given in `names`, so a translated sentence never gets an English word in a slot. With no arguments the template is returned as written. Arguments that do not fit the placeholders give the bare template back: the reader never raises. |
+| `count(key, n, ...)` | A sentence whose noun agrees with `n`, which is the first format argument. Without forms for the key it is the flat string. A fractional `n` takes the `other` form. A count the sentence cannot take gives the bare template, as in `get`. |
 | `data(kind, name, field?)` | `get(Keys.of(kind, name, field))`. |
 | `name(kind, id)` | The name of one of the game's things in this locale (`Names`); the id itself when the kind was not given or this locale does not name it. |
 | `has(key)` | Whether the key has text in this locale or in English. |
@@ -84,6 +84,11 @@ locale, a spec walking every table) and is used as given.
 | `isRtl()` | Whether this locale is written right to left. |
 
 Amounts are written by the game (`"12.5K"`) and ride `%s`.
+
+**A sentence that does not fit.** The lint is what keeps a template and its arguments in step
+(`Lint.tables`, `Lint.plurals`). Behind it the reader is a safety net: a `%d` handed a word, or an
+argument short, shows the template as written rather than raising in the middle of a UI update.
+Nothing reports it yet (issue #4).
 
 **Plural forms.** `plurals[locale][key][category]`, the category being CLDR's: `zero`, `one`, `two`,
 `few`, `many`, `other`. A missing category falls back to `other`, then `many`, then `one`. A locale
@@ -186,11 +191,13 @@ local problems = LocaleBlox.Lint.tables(locales)
 ```
 
 - `Parse.source(source, out, aliases?)` adds every table of a Luau source to `out[code][key]`. A
-  table opens with `local name: Type = {` on a line of its own, holds one
+  table opens with `local name: Type = {` (or `const`) on a line of its own, holds one
   `key = "value",` per line one tab deep, and closes with `}` at the start of a line. The type is
   any type written on that line (`Table`, `{ [string]: string }`) or none. `aliases` renames a
   variable to its locale code, which is also how a names file whose table is called `names`
-  becomes its locale's. `Parse.specifiers(text)` lists a string's `string.format` specifiers.
+  becomes its locale's. `Parse.specifiers(text)` lists a string's `string.format` specifiers: a
+  percent, its flags, and a conversion Luau's `string.format` takes (`c d e E f g G i o q s u x X`
+  and `*`), which is the pattern `Parse.SPECIFIER`. A lone `%` of plain text is not one.
 - `Lint.tables(locales)`: every English key is in every locale and no locale holds a key English
   lacks; a translation has English's specifiers in number and order; no empty string; no combining
   acute accent; no Simplified glyph in `zh-hant` and no Traditional glyph in `zh-hans`; one width
@@ -208,7 +215,9 @@ local problems = LocaleBlox.Lint.tables(locales)
   "Robux" and "Roblox" are always kept.
 - `Usage.check(en, sources, options?)`: `sources` is a list of `{ path, text }`. A string literal
   shaped like a key (a lowercase word, then a capital) whose first word starts some English key
-  must be a key, and every English key must appear in a source. `options.data` names the first
+  must be a key, and every English key must appear in a source. The literal may stand in double
+  quotes, single quotes or backticks; a comment is not read, so a name written in one is neither
+  judged nor a use. `options.data` names the first
   words of keys built from game data, which are left to the game's own spec.
 
 ## Working on it

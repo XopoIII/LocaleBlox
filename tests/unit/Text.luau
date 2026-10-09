@@ -14,6 +14,10 @@ local TABLES = {
 		foodSugarCube = "Sugar cube",
 		upgradeSpeedHint = "faster trips",
 		full = "100%% full",
+		greet = "Hi %s",
+		trio = "%s, %s and %s",
+		owned = "%d of %s",
+		shared = "%d of %s and %s",
 	},
 	ru = {
 		feed = "RU feed",
@@ -54,6 +58,48 @@ Spec.test("arguments are formatted, and a key among them is looked up first", fu
 	Spec.equal(reader("en").get("movedTo", "Ann", { key = "zoneHarbour" }), "Ann's camp moved to the Harbour")
 	Spec.equal(reader("ru").get("movedTo", "Ann", { key = "zoneHarbour" }), "RU Ann moved to RU harbour")
 	Spec.equal(reader("en").get("level", 12), "Lv 12")
+	Spec.equal(reader("en").get("movedTo", { key = "feed" }, "Harbour"), "Feed's camp moved to the Harbour")
+	Spec.equal(
+		reader("ru").get("movedTo", { key = "feed" }, { key = "zoneHarbour" }),
+		"RU RU feed moved to RU harbour",
+		"every key among them"
+	)
+end)
+
+Spec.test("a key is looked up wherever it stands, among one argument, two, three and more", function()
+	local ru = reader("ru")
+	Spec.equal(ru.get("greet", { key = "feed" }), "Hi RU feed")
+	Spec.equal(ru.get("greet", "Ann"), "Hi Ann")
+	Spec.equal(ru.get("movedTo", { key = "feed" }, "x"), "RU RU feed moved to x")
+	Spec.equal(ru.get("movedTo", "x", { key = "feed" }), "RU x moved to RU feed")
+	Spec.equal(ru.get("trio", { key = "feed" }, "b", "c"), "RU feed, b and c")
+	Spec.equal(ru.get("trio", "a", { key = "feed" }, "c"), "a, RU feed and c")
+	Spec.equal(ru.get("trio", "a", "b", { key = "feed" }), "a, b and RU feed")
+	Spec.equal(ru.get("trio", "a", "b", "c"), "a, b and c")
+	Spec.equal(ru.count("owned", 2, { key = "feed" }), "2 of RU feed")
+	Spec.equal(ru.count("owned", 2, "Ann"), "2 of Ann")
+	Spec.equal(ru.count("shared", 2, { key = "feed" }, "Ann"), "2 of RU feed and Ann")
+	Spec.equal(ru.count("shared", 2, "Ann", { key = "feed" }), "2 of Ann and RU feed")
+end)
+
+Spec.test("an argument the format cannot take gives the bare template, in every place", function()
+	local en = reader("en")
+	Spec.equal(en.get("greet", nil), "Hi %s", "nil is no string")
+	Spec.equal(en.get("movedTo", nil, "Harbour"), "%s's camp moved to the %s")
+	Spec.equal(en.get("movedTo", "Ann", nil), "%s's camp moved to the %s")
+	Spec.equal(en.get("trio", "a", "b"), "%s, %s and %s", "one short of three")
+	Spec.equal(en.get("trio", "a", nil, "c"), "%s, %s and %s")
+	Spec.equal(en.count("owned", 2), "%d of %s")
+	Spec.equal(en.count("owned", 2, nil), "%d of %s")
+	Spec.equal(en.count("shared", 2, "Ann"), "%d of %s and %s")
+	-- A table that is no word is left as it came, and no format takes a table.
+	Spec.equal(en.get("greet", {}), "Hi %s", "alone")
+	Spec.equal(en.get("greet", { key = 5 }), "Hi %s", "a key is a string")
+	Spec.equal(en.get("movedTo", {}, "x"), "%s's camp moved to the %s", "first of two")
+	Spec.equal(en.get("movedTo", "x", {}), "%s's camp moved to the %s", "second of two")
+	Spec.equal(en.get("trio", "a", {}, "c"), "%s, %s and %s", "among three")
+	Spec.equal(en.count("owned", 2, {}), "%d of %s", "after a count")
+	Spec.equal(en.count("shared", 2, "Ann", {}), "%d of %s and %s", "after a count and one more")
 end)
 
 Spec.test("a template with no arguments is returned as written", function()
@@ -64,7 +110,15 @@ end)
 Spec.test("a sentence whose arguments do not fit reads as its bare template", function()
 	Spec.equal(reader("en").get("movedTo", "Ann"), "%s's camp moved to the %s", "too few arguments")
 	Spec.equal(reader("en").get("level", "many"), "Lv %d", "a %d handed a string")
+	Spec.equal(reader("en").get("movedTo", { key = "zoneHarbour" }), "%s's camp moved to the %s", "a word too few")
+	Spec.equal(reader("en").get("level", { key = "zoneHarbour" }), "Lv %d", "a %d handed a word")
+	Spec.equal(reader("en").get("feed", 1, 2), "Feed", "arguments a sentence has no place for are no fault")
+end)
+
+Spec.test("a count its sentence cannot take reads as its bare template", function()
 	Spec.equal(reader("en").count("pieces", 1), "%d / %d piece carried off", "a count short an argument")
+	Spec.equal(reader("en").count("pieces", 2), "%d / %d pieces carried off", "the form is the number's")
+	Spec.equal(reader("ru").count("minutes", 5, 6), "RU 5 min", "an argument too many is no fault")
 end)
 
 Spec.test("a counted sentence agrees with its number", function()

@@ -23,9 +23,27 @@ local MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Parse.luau",
-		from = 'for specifier in string.gmatch(clean, "%%[-+ #0-9%.]*[cdeEfgGiopqsuxX]") do',
-		to = 'for specifier in string.gmatch(clean, "%%[-+ #0-9%.]*%a") do',
+		from = 'Parse.SPECIFIER = "%%[-+ #0-9%.]*[cdeEfgGioqsuxX*]"',
+		to = 'Parse.SPECIFIER = "%%[-+ #0-9%.]*%a"',
 		breaks = "a lone percent of plain text is not a specifier",
+	},
+	{
+		file = "src/Parse.luau",
+		from = 'Parse.SPECIFIER = "%%[-+ #0-9%.]*[cdeEfgGioqsuxX*]"',
+		to = 'Parse.SPECIFIER = "%%[-+ #0-9%.]*[cdeEfgGiopqsuxX*]"',
+		breaks = "a conversion string.format refuses is not a specifier",
+	},
+	{
+		file = "src/Parse.luau",
+		from = 'Parse.SPECIFIER = "%%[-+ #0-9%.]*[cdeEfgGioqsuxX*]"',
+		to = 'Parse.SPECIFIER = "%%[-+ #0-9%.]*[cdeEfgGioqsuxX]"',
+		breaks = "the any-value conversion is a specifier",
+	},
+	{
+		file = "src/Parse.luau",
+		from = ' or string.match(line, "^const(%s.*)$")',
+		to = "",
+		breaks = "a table declared with const is read",
 	},
 	{
 		file = "src/Parse.luau",
