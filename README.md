@@ -9,7 +9,7 @@ formats a key into a sentence, makes a noun agree with its number, and checks th
 holds every key with the same placeholders, in its own script. There is no `LocalizationService`,
 no cloud table and nothing to upload.
 
-> **Status: 0.3.0.** Every rule is proven by specs that run on every push, and each of 189 small
+> **Status: 0.4.0.** Every rule is proven by specs that run on every push, and each of 206 small
 > slips in them makes the suite fail (`tests/Mutate.luau`). The whole library is plain Luau and
 > runs on LuneBlox, the Luau version Roblox runs. One game has run on it live since 0.2.0; before
 > each release its own tables and lint are run against the new sources and compared with the old.
@@ -24,7 +24,7 @@ or pin it exactly in `pesde.toml`:
 
 ```toml
 [dependencies]
-LocaleBlox = { name = "xopoiii/localeblox", version = "=0.3.0", target = "roblox" }
+LocaleBlox = { name = "xopoiii/localeblox", version = "=0.4.0", target = "roblox" }
 ```
 
 LocaleBlox has no dependencies. It reads no Roblox service, so the same modules load on the
@@ -69,13 +69,14 @@ sentences are written with, and the scripts that read its files and call the lin
 ### `Text`
 
 `Text.new(options)` returns a reader. `options.tables` is the game's tables by locale, with English
-required; `options.localeId` is any BCP-47 tag; `options.plurals` and `options.names` are optional.
+required; `options.localeId` is any BCP-47 tag; `options.plurals`, `options.names` and
+`options.misfit` are optional.
 `options.locale` names the table to read when it is already known (a server writing in one
 locale, a spec walking every table) and is used as given.
 
 | Function | What it returns |
 |---|---|
-| `get(key, ...)` | The string for `key`, formatted with `string.format` when arguments follow. An argument `{ key = "..." }` is looked up first, and so is `{ <kind> = "<id>" }` for a kind given in `names`, so a translated sentence never gets an English word in a slot. With no arguments the template is returned as written. Arguments that do not fit the placeholders give the bare template back: the reader never raises. |
+| `get(key, ...)` | The string for `key`, formatted with `string.format` when arguments follow. An argument `{ key = "..." }` is looked up first, and so is `{ <kind> = "<id>" }` for a kind given in `names`, so a translated sentence never gets an English word in a slot. With no arguments the template is returned as written. Arguments that do not fit the placeholders give the bare template back: the reader never raises, and `options.misfit` is told. |
 | `count(key, n, ...)` | A sentence whose noun agrees with `n`, which is the first format argument. Without forms for the key it is the flat string. A fractional `n` takes the `other` form. A count the sentence cannot take gives the bare template, as in `get`. |
 | `data(kind, name, field?)` | `get(Keys.of(kind, name, field))`. |
 | `name(kind, id)` | The name of one of the game's things in this locale (`Names`); the id itself when the kind was not given or this locale does not name it. |
@@ -88,7 +89,38 @@ Amounts are written by the game (`"12.5K"`) and ride `%s`.
 **A sentence that does not fit.** The lint is what keeps a template and its arguments in step
 (`Lint.tables`, `Lint.plurals`). Behind it the reader is a safety net: a `%d` handed a word, or an
 argument short, shows the template as written rather than raising in the middle of a UI update.
-Nothing reports it yet (issue #4).
+
+A game hears of it through `options.misfit`, and reports it its own way:
+
+```lua
+local text = LocaleBlox.Text.new({
+	tables = tables,
+	localeId = Players.LocalPlayer.LocaleId,
+	misfit = function(key: string, locale: LocaleBlox.Locale, template: string, problem: string)
+		-- "movedTo", "ru", "%s moved to the %s", "missing argument #3"
+		reportToTheGame(key, locale, template, problem)
+	end,
+})
+```
+
+- It is handed the key that was asked for, the locale the reader reads in, the template as it was
+  read (a plural form, the English a missing string fell back to, or the key itself when there is
+  no text) and `string.format`'s own message. The arguments are never handed over: they may hold a
+  player's name.
+- **Once a key and template, for each reader.** A label redrawn every frame tells of its bad
+  sentence once, not sixty times a second, so the hook needs no rate limit of its own for one
+  client; another plural form of the same key is another template and is told too. What the reader
+  remembers is one entry a bad sentence. Counting how often a sentence fails, and limiting reports
+  across clients and servers, is the game's.
+- **It cannot hurt the reader.** The hook runs in a coroutine of its own: if it raises, the error
+  stays there and the template is still returned; if it yields (a request, a wait), the reader
+  returns at once and the hook goes on when whatever it waits for wakes it. A sentence is marked as
+  told before the hook runs, so a hook that raises is not asked again for it.
+- A sentence that fits, and a key read with no arguments, never reach the hook and cost what they
+  did without one. Without `misfit` the reader keeps no memory and behaves as in 0.3.0.
+- `Label`, `Said.read` and `Localize` format through the reader they are given, so the reader's
+  hook covers them: give `misfit` to the English reader a `Label` is made with and to the client's
+  reader, and a server's sentence that does not fit is told on both sides.
 
 **Plural forms.** `plurals[locale][key][category]`, the category being CLDR's: `zero`, `one`, `two`,
 `few`, `many`, `other`. A missing category falls back to `other`, then `many`, then `one`. A locale
@@ -143,7 +175,7 @@ LocaleBlox.Localize.start({ said = said, text = text, collection = CollectionSer
   English into the property (so it is never blank before a client has run), the sentence into the
   attribute `Said_<property>`, and tags the instance `Localized`. Setting the same sentence again
   does nothing. `english(key, args?)` is the sentence in English; one whose arguments do not fit
-  reads as its bare template.
+  reads as its bare template, and the English reader's `misfit` is told.
 - `Localize.start({ said, text, collection, tag?, prefix? })` rewrites every tagged instance in
   the reader's language, those there and those that come, and again whenever the server says
   something new or its English lands late.

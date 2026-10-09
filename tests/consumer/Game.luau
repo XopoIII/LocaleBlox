@@ -36,6 +36,25 @@ local _locale: LocaleBlox.Locale = text.locale()
 local _id: string = text.localeId()
 local _mirror: boolean = text.isRtl()
 
+-- A reader that tells the game of a sentence whose arguments did not fit: the key, the locale, the
+-- template as read and the format's message, once a key and template. The game reports it its own way.
+local misfits: { string } = {}
+local report: LocaleBlox.Misfit = function(key: string, locale: LocaleBlox.Locale, template: string, problem: string)
+	table.insert(misfits, `{locale}.{key} "{template}": {problem}`)
+end
+local options: LocaleBlox.TextOptions = { tables = tables, localeId = "en-us", misfit = report }
+local watched: LocaleBlox.Reader = LocaleBlox.Text.new(options)
+local _bare: string = watched.get("movedTo", "Ann")
+local inline: LocaleBlox.Reader = LocaleBlox.Text.new({
+	tables = tables,
+	localeId = "ru-ru",
+	misfit = function(key, locale, template, problem)
+		table.insert(misfits, `{locale}.{key} "{template}": {problem}`)
+	end,
+})
+local _short: string = inline.count("pieces", 3)
+local _told: number = #misfits
+
 -- The names of the game's things, a table a locale, and a reader that resolves them.
 local pets: LocaleBlox.NameTables = { ru = { Goldbun = "RU goldbun" } }
 local named: LocaleBlox.Reader = LocaleBlox.Text.new({

@@ -3,6 +3,28 @@
 Every release is listed here, newest first. The format follows Keep a Changelog, and versions follow
 semantic versioning.
 
+## 0.4.0 - 2026-10-09
+
+A game can hear of a sentence that did not fit. Nothing else changes: on the first game's
+twenty-five tables every answer of 0.3.0 and of this version was compared (105,225 of them: a key
+alone, a formatted sentence, a count for each whole number tried, the plural category), and none
+differ; a lookup that fits costs what it did.
+
+### Added
+
+- `Text.new` takes `misfit`, a function called when a sentence's arguments do not fit its
+  placeholders, the case the reader answers with the bare template since 0.3.0. It is handed the
+  key, the locale the reader reads in, the template as read and `string.format`'s message, and
+  never the arguments. Closes #4.
+  - A reader tells of a key and a template once, so a label redrawn every frame reports once;
+    another plural form of the same key is told for itself.
+  - The hook runs in a coroutine of its own: one that raises or yields costs the reader nothing,
+    and the template is returned either way.
+  - `Label`, `Said.read` and `Localize` format through the reader they are given, so they are
+    covered by that reader's hook and take no option of their own.
+  - Without `misfit` the reader does what 0.3.0 did, and keeps no memory.
+- `LocaleBlox.Misfit` and `Text.Misfit`: the hook's type.
+
 ## 0.3.0 - 2026-10-09
 
 A reader that never raises, a lint that reads code as code, and the same words as 0.2.0: on the

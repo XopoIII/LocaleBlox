@@ -72,6 +72,9 @@ This is the reason the package exists, and the rule a change is checked against 
 - `Locale`: a LocaleId to a locale, and the lookup with its fallbacks. `Plural`: the category of a
   count. `Keys`: the key of a piece of game data.
 - `Text`: the reader a client draws every word through, made from tables and a LocaleId.
+  Its `misfit` option is the one place the kit reports anything: a sentence whose arguments did
+  not fit, told to the game once a key and template. Whatever formats goes through a reader, so
+  nothing else needs a hook.
 - `Names`: the display names of a game's things, a table a locale; the reader resolves them.
 - `Said`: a server's sentence as a key and arguments. `Label` writes one on an instance,
   `Localize` rewrites it on the client.

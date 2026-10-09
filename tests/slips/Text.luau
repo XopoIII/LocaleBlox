@@ -185,14 +185,14 @@ local MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Text.luau",
-		from = "return if ok then text else template",
-		to = "return text",
+		from = "\t\tif ok then\n\t\t\treturn text\n\t\tend\n",
+		to = "\t\tdo\n\t\t\treturn text\n\t\tend\n",
 		breaks = "a sentence whose arguments do not fit reads as its bare template",
 	},
 	{
 		file = "src/Text.luau",
-		from = "return if fits then sentence else template",
-		to = "return sentence",
+		from = "\t\tif fits then\n\t\t\treturn sentence\n\t\tend\n",
+		to = "\t\tdo\n\t\t\treturn sentence\n\t\tend\n",
 		breaks = "a count its sentence cannot take reads as its bare template",
 	},
 	{
