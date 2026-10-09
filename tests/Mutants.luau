@@ -12,6 +12,7 @@ for _, list in
 		require("./slips/Plural"),
 		require("./slips/Keys"),
 		require("./slips/Text"),
+		require("./slips/Misfit"),
 		require("./slips/Names"),
 		require("./slips/Said"),
 		require("./slips/Label"),

@@ -33,6 +33,7 @@ export type Forms = Text.Forms
 export type Plurals = Text.Plurals
 export type TextOptions = Text.Options
 export type Reader = Text.Reader
+export type Misfit = Text.Misfit
 export type Parsed = Parse.Locales
 export type Source = Usage.Source
 export type NameTable = Names.Table

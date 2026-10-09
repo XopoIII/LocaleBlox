@@ -13,6 +13,13 @@
 ---     text.get("hatched", { pet = "Goldbun" })
 ---     text.name("pet", "Goldbun")
 ---
+--- With `misfit`, the game hears of a sentence whose arguments did not fit its placeholders, which
+--- the player sees as the bare template:
+---
+---     local text = Text.new({ tables = Tables, localeId = id, misfit = function(key, locale, template, problem)
+---         report(key, locale, template, problem)
+---     end })
+---
 --- The locale id is an argument: nothing here reads a player, a service or an attribute. Amounts
 --- arrive already written as strings and ride `%s`.
 local Keys = require("./Keys")
@@ -24,6 +31,12 @@ local Text = {}
 
 export type Forms = { [string]: string }
 export type Plurals = { [string]: { [string]: Forms } }
+
+--- What a game is told of a sentence that did not fit: the key asked for, the locale the reader
+--- reads in, the template as it was read (a plural form, the English a missing string fell back to,
+--- or the key itself) and `string.format`'s own message. The arguments are not among them: they
+--- may hold a player's name.
+export type Misfit = (key: string, locale: Locale.Locale, template: string, problem: string) -> ()
 
 export type Options = {
 	--- The game's tables by locale; English is required.
@@ -38,13 +51,18 @@ export type Options = {
 	--- The names of the game's things, by kind: `{ pet = PetNames }` makes `{ pet = "<id>" }` an
 	--- argument and `name("pet", "<id>")` a lookup (`Names`).
 	names: { [string]: Names.Tables }?,
+	--- Called when a sentence's arguments do not fit its placeholders, once for each key and
+	--- template this reader meets: a label drawn every frame tells of its bad sentence once. The
+	--- reader gives the bare template back whatever this does. It runs in its own coroutine, so one
+	--- that raises or yields costs the caller nothing.
+	misfit: Misfit?,
 }
 
 export type Reader = {
 	--- The string for a key, formatted when arguments follow. An argument `{ key = "..." }` is
 	--- looked up first, and so is `{ <kind> = "<id>" }` for a kind given in `names`, so a translated
 	--- sentence never gets an English word in a slot. Arguments that do not fit the placeholders
-	--- give the bare template back rather than raising.
+	--- give the bare template back rather than raising, and `options.misfit` is told.
 	get: (key: string, ...any) -> string,
 	--- A sentence whose noun agrees with `n`; `n` is the first format argument. A fractional `n`
 	--- takes the "other" form (CLDR: a fraction agrees with no noun).
@@ -70,6 +88,28 @@ function Text.new(options: Options): Reader
 	local plurals: Plurals = options.plurals or {}
 	local names: { [string]: Names.Tables } = options.names or {}
 	local english: Locale.Locale = "en"
+	local misfit = options.misfit
+	-- The templates of each key the game has been told of.
+	local told: { [string]: { [string]: boolean } } = {}
+
+	-- Tells the game of a sentence that did not fit, the first time this key reads as this
+	-- template. It is marked before the game is told, so a hook that reads the same sentence, or
+	-- raises, is not called for it again. The hook runs in a coroutine of its own: its error stays
+	-- there, and when it yields the reader goes on without it.
+	local function tell(hook: Misfit, key: string, template: string, problem: unknown)
+		local seen = told[key]
+		if seen == nil then
+			seen = {}
+			told[key] = seen
+		end
+		if seen[template] then
+			return
+		end
+		seen[template] = true
+		-- The message is `string.format`'s, a string; an argument whose `__tostring` raised
+		-- something else is written out, so the hook is always handed text.
+		coroutine.resume(coroutine.create(hook), key, locale, template, tostring(problem))
+	end
 
 	local function name(kind: string, id: string): string
 		local tables = names[kind]
@@ -151,7 +191,13 @@ function Text.new(options: Options): Reader
 			resolve(args, count)
 			ok, text = pcall(string.format, template, table.unpack(args, 1, count))
 		end
-		return if ok then text else template
+		if ok then
+			return text
+		end
+		if misfit ~= nil then
+			tell(misfit, key, template, text)
+		end
+		return template
 	end
 
 	-- The forms of a key: this locale's, else English's, so an untranslated count still agrees.
@@ -199,7 +245,13 @@ function Text.new(options: Options): Reader
 			resolve(args, extra)
 			fits, sentence = pcall(string.format, template, n, table.unpack(args, 1, extra))
 		end
-		return if fits then sentence else template
+		if fits then
+			return sentence
+		end
+		if misfit ~= nil then
+			tell(misfit, key, template, sentence)
+		end
+		return template
 	end
 
 	return {
