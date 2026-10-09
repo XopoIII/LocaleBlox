@@ -1,8 +1,8 @@
 --!strict
 --- The mutants of src/Names.luau and of the reader's use of it: each a small slip, and the rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Names.luau",
 		from = 'if name ~= nil and name ~= "" then\n\t\treturn name\n\tend\n\treturn id',
@@ -11,8 +11,8 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Names.luau",
-		from = "const name = if own ~= nil then own[id] else nil",
-		to = "const name = if own ~= nil then id else nil",
+		from = "local name = if own ~= nil then own[id] else nil",
+		to = "local name = if own ~= nil then id else nil",
 		breaks = "a name is the locale's own",
 	},
 	{
@@ -71,8 +71,8 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Text.luau",
-		from = "const locale: Locale.Locale = if given ~= nil then given else Locale.localeFor(localeId)",
-		to = "const locale: Locale.Locale = Locale.localeFor(localeId)",
+		from = "local locale: Locale.Locale = if given ~= nil then given else Locale.localeFor(localeId)",
+		to = "local locale: Locale.Locale = Locale.localeFor(localeId)",
 		breaks = "a reader given its table reads it",
 	},
 	{

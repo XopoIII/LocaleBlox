@@ -8,17 +8,17 @@
 ---
 --- Every mutant's `from` must occur exactly once in its file, so a change to the code that moves it
 --- fails here loudly instead of testing nothing. The source is always put back, even on an error.
-const fs = require("@lune/fs")
-const process = require("@lune/process")
+local fs = require("@lune/fs")
+local process = require("@lune/process")
 
-const Mutants = require("./Mutants")
+local Mutants = require("./Mutants")
 
 type Mutant = Mutants.Mutant
 
-const function count(text: string, pattern: string): number
+local function count(text: string, pattern: string): number
 	local found, start = 0, 1
 	while true do
-		const first, last = string.find(text, pattern, start, true)
+		local first, last = string.find(text, pattern, start, true)
 		if first == nil then
 			return found
 		end
@@ -27,8 +27,8 @@ const function count(text: string, pattern: string): number
 	end
 end
 
-const function suitePasses(): boolean
-	const result = process.exec("luneblox", { "run", "tests/Run", "--yes" })
+local function suitePasses(): boolean
+	local result = process.exec("luneblox", { "run", "tests/Run", "--yes" })
 	return result.ok
 end
 
@@ -39,28 +39,28 @@ for _, arg in process.args do
 	end
 end
 -- Every chosen mutant must still match its code before any runs, so a stale one fails at once.
-const chosen: { [number]: Mutant } = {}
+local chosen: { [number]: Mutant } = {}
 for index, mutant in Mutants do
 	if only == nil or string.find(mutant.file, only :: string, 1, true) then
-		const occurrences = count(fs.readFile(mutant.file), mutant.from)
+		local occurrences = count(fs.readFile(mutant.file), mutant.from)
 		assert(occurrences == 1, `mutant {index} ({mutant.file}): its code occurs {occurrences} times, not once`)
 		chosen[index] = mutant
 	end
 end
 
-const survivors: { Mutant } = {}
+local survivors: { Mutant } = {}
 local ran = 0
 for index, mutant in Mutants do
 	if chosen[index] == nil then
 		continue
 	end
-	const original = fs.readFile(mutant.file)
-	const first, last = string.find(original, mutant.from, 1, true)
+	local original = fs.readFile(mutant.file)
+	local first, last = string.find(original, mutant.from, 1, true)
 	fs.writeFile(
 		mutant.file,
 		string.sub(original, 1, (first :: number) - 1) .. mutant.to .. string.sub(original, (last :: number) + 1)
 	)
-	const ok, passed = pcall(suitePasses)
+	local ok, passed = pcall(suitePasses)
 	fs.writeFile(mutant.file, original)
 	assert(ok, `mutant {index}: the suite could not run: {passed}`)
 	ran += 1

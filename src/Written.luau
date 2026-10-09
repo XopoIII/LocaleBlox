@@ -9,7 +9,7 @@
 ---
 --- Latin kept on purpose in every language is named by the game as `keep` patterns; format
 --- specifiers, multipliers ("x2"), "R$", "Robux" and "Roblox" are always kept.
-const Written = {}
+local Written = {}
 
 type Range = { number }
 export type Locales = { [string]: { [string]: string } }
@@ -18,7 +18,7 @@ export type Options = {
 	keep: { string }?,
 }
 
-const SCRIPTS: { [string]: { Range } } = {
+local SCRIPTS: { [string]: { Range } } = {
 	latin = { { 0x41, 0x5A }, { 0x61, 0x7A }, { 0xC0, 0x24F }, { 0x1E00, 0x1EFF } },
 	cyrillic = { { 0x400, 0x4FF } },
 	arabic = { { 0x600, 0x6FF }, { 0x750, 0x77F }, { 0xFB50, 0xFDFF }, { 0xFE70, 0xFEFF } },
@@ -30,7 +30,7 @@ const SCRIPTS: { [string]: { Range } } = {
 }
 
 -- The scripts a locale must be written in; an unlisted locale is Latin.
-const NATIVE: { [string]: { string } } = {
+local NATIVE: { [string]: { string } } = {
 	ru = { "cyrillic" },
 	uk = { "cyrillic" },
 	ar = { "arabic" },
@@ -43,9 +43,9 @@ const NATIVE: { [string]: { string } } = {
 }
 
 -- Multipliers go first, so "x%s" is taken whole before its specifier is.
-const ALWAYS_KEPT = { "x%%[-+ #0-9%.]*%a", "x%d+", "%%[-+ #0-9%.]*%a", "R%$", "Robux", "Roblox" }
+local ALWAYS_KEPT = { "x%%[-+ #0-9%.]*%a", "x%d+", "%%[-+ #0-9%.]*%a", "R%$", "Robux", "Roblox" }
 
-const function scriptOf(point: number): string?
+local function scriptOf(point: number): string?
 	for name, ranges in SCRIPTS do
 		for _, range in ranges do
 			if point >= range[1] and point <= range[2] then
@@ -57,7 +57,7 @@ const function scriptOf(point: number): string?
 end
 
 -- The scripts of the letters of `text`, in order, once the kept patterns are taken out.
-const function letters(text: string, keep: { string }): { string }
+local function letters(text: string, keep: { string }): { string }
 	local rest = text
 	for _, pattern in keep do
 		rest = string.gsub(rest, pattern, "")
@@ -65,9 +65,9 @@ const function letters(text: string, keep: { string }): { string }
 	for _, pattern in ALWAYS_KEPT do
 		rest = string.gsub(rest, pattern, "")
 	end
-	const out: { string } = {}
+	local out: { string } = {}
 	for _, point in utf8.codes(rest) do
-		const name = scriptOf(point)
+		local name = scriptOf(point)
 		if name ~= nil then
 			table.insert(out, name)
 		end
@@ -75,7 +75,7 @@ const function letters(text: string, keep: { string }): { string }
 	return out
 end
 
-const function encoding(where: string, text: string, bad: (string) -> ()): boolean
+local function encoding(where: string, text: string, bad: (string) -> ()): boolean
 	if utf8.len(text) == nil then
 		bad(`{where}: not valid UTF-8`)
 		return false
@@ -92,12 +92,12 @@ const function encoding(where: string, text: string, bad: (string) -> ()): boole
 	return true
 end
 
-const function script(code: string, where: string, text: string, keep: { string }, bad: (string) -> ())
-	const found = letters(text, keep)
+local function script(code: string, where: string, text: string, keep: { string }, bad: (string) -> ())
+	local found = letters(text, keep)
 	if #found == 0 then
 		return
 	end
-	const native = NATIVE[code]
+	local native = NATIVE[code]
 	if native ~= nil then
 		local has = false
 		for _, name in found do
@@ -129,8 +129,8 @@ end
 
 --> The problems of one string of locale `code`, named `where` in each line.
 function Written.one(code: string, where: string, text: string, options: Options?): { string }
-	const out: { string } = {}
-	const function bad(message: string)
+	local out: { string } = {}
+	local function bad(message: string)
 		table.insert(out, message)
 	end
 	if encoding(where, text, bad) and code ~= "en" then
@@ -142,9 +142,9 @@ end
 --> The problems of every string of every locale. The tables are keyed by locale code: a game's
 --> own `Tables`, or what `Parse.source` read.
 function Written.check<Code>(locales: { [Code]: { [string]: string } }, options: Options?): { string }
-	const out: { string } = {}
+	local out: { string } = {}
 	for given, own in locales do
-		const code = tostring(given)
+		local code = tostring(given)
 		for key, value in own do
 			for _, problem in Written.one(code, `{code}.{key}`, value, options) do
 				table.insert(out, problem)
@@ -155,4 +155,4 @@ function Written.check<Code>(locales: { [Code]: { [string]: string } }, options:
 	return out
 end
 
-return Written
+return table.freeze(Written)

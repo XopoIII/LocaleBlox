@@ -5,14 +5,14 @@
 --- reports the path of the first difference (`value.items[3].name`), so a failure says where, not
 --- only that. `throws` requires an error AND checks its text, so a spec cannot pass because the code
 --- failed for some other reason.
-const process = require("@lune/process")
-const stdio = require("@lune/stdio")
+local process = require("@lune/process")
+local stdio = require("@lune/stdio")
 
-const Spec = {}
+local Spec = {}
 
 local passed, failed = 0, 0
 
-const function render(value: any): string
+local function render(value: any): string
 	if type(value) == "string" then
 		return string.format("%q", value)
 	end
@@ -20,7 +20,7 @@ const function render(value: any): string
 end
 
 -- Returns nil when equal, else a description of the first difference under `path`.
-const function difference(actual: any, expected: any, path: string, seen: { [any]: any }): string?
+local function difference(actual: any, expected: any, path: string, seen: { [any]: any }): string?
 	if type(actual) ~= "table" or type(expected) ~= "table" then
 		if actual == expected or (actual ~= actual and expected ~= expected) then
 			return nil
@@ -75,7 +75,7 @@ end
 --> Runs one named spec and records whether it passed.
 function Spec.test(name: string, fn: () -> ())
 	local message = ""
-	const ok = xpcall(fn, function(problem: any)
+	local ok = xpcall(fn, function(problem: any)
 		message = debug.traceback(tostring(problem), 2)
 	end)
 	if ok then

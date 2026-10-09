@@ -5,15 +5,15 @@
 --- never changes; only what is drawn goes through here. Each locale has one table, keyed by the id,
 --- so a new thing lands with a line in every table and nothing else moves.
 ---
----     const NAMES: Names.Tables = { ru = require(names.ru), ja = require(names.ja) }
+---     local NAMES: Names.Tables = { ru = require(names.ru), ja = require(names.ja) }
 ---     Names.get(NAMES, "ru", "Goldbun")   --> the Russian name
 ---     Names.get(NAMES, "en", "Goldbun")   --> "Goldbun": no table, so the id itself
 ---
 --- A locale with no table, and an id its table lacks or leaves empty, show the id. A game whose ids
 --- are its English names therefore ships no English table.
-const Locale = require("./Locale")
+local Locale = require("./Locale")
 
-const Names = {}
+local Names = {}
 
 --> One locale's names by id.
 export type Table = { [string]: string }
@@ -30,8 +30,8 @@ export type Coverage = {
 
 --> The name to draw for `id` in `locale`: the table's own, or the id.
 function Names.get(tables: Tables, locale: Locale.Locale, id: string): string
-	const own = tables[locale]
-	const name = if own ~= nil then own[id] else nil
+	local own = tables[locale]
+	local name = if own ~= nil then own[id] else nil
 	if name ~= nil and name ~= "" then
 		return name
 	end
@@ -40,11 +40,11 @@ end
 
 --> How many of `ids` each locale names, fullest first, ties by locale code.
 function Names.coverage(tables: Tables, ids: { string }): { Coverage }
-	const out: { Coverage } = {}
+	local out: { Coverage } = {}
 	for locale, own in tables do
 		local have = 0
 		for _, id in ids do
-			const name = own[id]
+			local name = own[id]
 			if name ~= nil and name ~= "" then
 				have += 1
 			end
@@ -63,7 +63,7 @@ end
 --> Every id any table names, with the locales that name it, in order. An id that matches nothing
 --> of the game is a translation nobody will ever see.
 function Names.keys(tables: Tables): { [string]: { Locale.Locale } }
-	const out: { [string]: { Locale.Locale } } = {}
+	local out: { [string]: { Locale.Locale } } = {}
 	for locale, own in tables do
 		for id in own do
 			local seen = out[id]
@@ -80,4 +80,4 @@ function Names.keys(tables: Tables): { [string]: { Locale.Locale } }
 	return out
 end
 
-return Names
+return table.freeze(Names)

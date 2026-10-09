@@ -1,8 +1,8 @@
 --!strict
 --- The mutants of src/Plural.luau: each a small slip in a rule, and the rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Plural.luau",
 		from = "if m10 == 1 and m100 ~= 11 then",
@@ -11,14 +11,14 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Plural.luau",
-		from = 'const m10, m100 = n % 10, n % 100\n\tif m10 == 1 and m100 ~= 11 then\n\t\treturn "one"\n\tend\n\tif m10 >= 2 and m10 <= 4 and not (m100 >= 12 and m100 <= 14) then',
-		to = 'const m10, m100 = n % 10, n % 100\n\tif m10 == 1 and m100 ~= 11 then\n\t\treturn "one"\n\tend\n\tif m10 >= 2 and m10 <= 4 then',
+		from = 'local m10, m100 = n % 10, n % 100\n\tif m10 == 1 and m100 ~= 11 then\n\t\treturn "one"\n\tend\n\tif m10 >= 2 and m10 <= 4 and not (m100 >= 12 and m100 <= 14) then',
+		to = 'local m10, m100 = n % 10, n % 100\n\tif m10 == 1 and m100 ~= 11 then\n\t\treturn "one"\n\tend\n\tif m10 >= 2 and m10 <= 4 then',
 		breaks = "twelve to fourteen are many in Russian",
 	},
 	{
 		file = "src/Plural.luau",
-		from = 'if n == 1 then\n\t\treturn "one"\n\tend\n\tconst m10, m100 = n % 10, n % 100\n\tif m10 >= 2 and m10 <= 4 and not (m100 >= 12 and m100 <= 14) then',
-		to = 'if n % 10 == 1 then\n\t\treturn "one"\n\tend\n\tconst m10, m100 = n % 10, n % 100\n\tif m10 >= 2 and m10 <= 4 and not (m100 >= 12 and m100 <= 14) then',
+		from = 'if n == 1 then\n\t\treturn "one"\n\tend\n\tlocal m10, m100 = n % 10, n % 100\n\tif m10 >= 2 and m10 <= 4 and not (m100 >= 12 and m100 <= 14) then',
+		to = 'if n % 10 == 1 then\n\t\treturn "one"\n\tend\n\tlocal m10, m100 = n % 10, n % 100\n\tif m10 >= 2 and m10 <= 4 and not (m100 >= 12 and m100 <= 14) then',
 		breaks = "Polish has one only at exactly one",
 	},
 	{
@@ -59,9 +59,15 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Plural.luau",
-		from = "const count = math.floor(math.abs(n))",
-		to = "const count = math.floor(n)",
+		from = "local count = math.abs(n)",
+		to = "local count = n",
 		breaks = "a count is taken without its sign",
+	},
+	{
+		file = "src/Plural.luau",
+		from = '	if n % 1 ~= 0 then\n\t\treturn "other"\n\tend\n',
+		to = "",
+		breaks = "a fractional count is always other",
 	},
 }
 

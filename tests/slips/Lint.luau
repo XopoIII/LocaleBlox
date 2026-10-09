@@ -1,8 +1,8 @@
 --!strict
 --- The mutants of src/Lint.luau: each a small slip in a rule, and the rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Lint.luau",
 		from = "\tif #a ~= #b then\n\t\treturn false\n\tend\n",
@@ -47,8 +47,8 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Lint.luau",
-		from = 'const points = if code == "zh-hant" then SIMPLIFIED else TRADITIONAL',
-		to = 'const points = if code == "zh-hant" then TRADITIONAL else SIMPLIFIED',
+		from = 'local points = if code == "zh-hant" then SIMPLIFIED else TRADITIONAL',
+		to = 'local points = if code == "zh-hant" then TRADITIONAL else SIMPLIFIED',
 		breaks = "the Traditional table holds no Simplified glyph, and the reverse",
 	},
 	{

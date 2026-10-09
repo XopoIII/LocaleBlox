@@ -1,7 +1,7 @@
 --!strict
 --- One reader for every word a client draws, bound to a game's tables and a player's locale.
 ---
----     const text = Text.new({ tables = Tables, plurals = Plurals, localeId = player.LocaleId })
+---     local text = Text.new({ tables = Tables, plurals = Plurals, localeId = player.LocaleId })
 ---     text.get("open")                          --> "Open"
 ---     text.get("movedTo", { key = "zoneHarbour" })
 ---     text.count("itemsCarried", 3, 12)         -- the noun agrees with 3
@@ -9,18 +9,18 @@
 --- With `names`, an argument may also be a thing of the game by its id, and the sentence gets that
 --- thing's name in the reader's language:
 ---
----     const text = Text.new({ tables = Tables, names = { pet = PetNames }, localeId = id })
+---     local text = Text.new({ tables = Tables, names = { pet = PetNames }, localeId = id })
 ---     text.get("hatched", { pet = "Goldbun" })
 ---     text.name("pet", "Goldbun")
 ---
 --- The locale id is an argument: nothing here reads a player, a service or an attribute. Amounts
 --- arrive already written as strings and ride `%s`.
-const Keys = require("./Keys")
-const Locale = require("./Locale")
-const Names = require("./Names")
-const Plural = require("./Plural")
+local Keys = require("./Keys")
+local Locale = require("./Locale")
+local Names = require("./Names")
+local Plural = require("./Plural")
 
-const Text = {}
+local Text = {}
 
 export type Forms = { [string]: string }
 export type Plurals = { [string]: { [string]: Forms } }
@@ -43,9 +43,11 @@ export type Options = {
 export type Reader = {
 	--- The string for a key, formatted when arguments follow. An argument `{ key = "..." }` is
 	--- looked up first, and so is `{ <kind> = "<id>" }` for a kind given in `names`, so a translated
-	--- sentence never gets an English word in a slot.
+	--- sentence never gets an English word in a slot. Arguments that do not fit the placeholders
+	--- give the bare template back rather than raising.
 	get: (key: string, ...any) -> string,
-	--- A sentence whose noun agrees with `n`; `n` is the first format argument.
+	--- A sentence whose noun agrees with `n`; `n` is the first format argument. A fractional `n`
+	--- takes the "other" form (CLDR: a fraction agrees with no noun).
 	count: (key: string, n: number, ...any) -> string,
 	--- The text of a piece of game data (`Keys.of`).
 	data: (kind: string, name: string, field: string?) -> string,
@@ -61,16 +63,16 @@ export type Reader = {
 
 --> A reader over `options.tables` for the locale `options.localeId` resolves to.
 function Text.new(options: Options): Reader
-	const router = Locale.router(options.tables)
-	const localeId = options.localeId
-	const given = options.locale
-	const locale: Locale.Locale = if given ~= nil then given else Locale.localeFor(localeId)
-	const plurals: Plurals = options.plurals or {}
-	const names: { [string]: Names.Tables } = options.names or {}
-	const english: Locale.Locale = "en"
+	local router = Locale.router(options.tables)
+	local localeId = options.localeId
+	local given = options.locale
+	local locale: Locale.Locale = if given ~= nil then given else Locale.localeFor(localeId)
+	local plurals: Plurals = options.plurals or {}
+	local names: { [string]: Names.Tables } = options.names or {}
+	local english: Locale.Locale = "en"
 
-	const function name(kind: string, id: string): string
-		const tables = names[kind]
+	local function name(kind: string, id: string): string
+		local tables = names[kind]
 		if tables == nil then
 			return id
 		end
@@ -79,12 +81,12 @@ function Text.new(options: Options): Reader
 
 	-- A table argument as a word of this locale: a key's text or a thing's name. Nil for a table
 	-- that is neither, which is left as it came.
-	const function word(arg: { [any]: any }): string?
+	local function word(arg: { [any]: any }): string?
 		if type(arg.key) == "string" then
 			return router.get(locale, arg.key)
 		end
 		for kind in names do
-			const id = arg[kind]
+			local id = arg[kind]
 			if type(id) == "string" then
 				return name(kind, id)
 			end
@@ -93,49 +95,59 @@ function Text.new(options: Options): Reader
 	end
 
 	-- Arguments that are keys or things become words of this locale.
-	const function resolve(args: { any }, count: number)
+	local function resolve(args: { any }, count: number)
 		for index = 1, count do
-			const arg = args[index]
+			local arg = args[index]
 			if type(arg) == "table" then
 				args[index] = word(arg) or arg
 			end
 		end
 	end
 
-	const function get(key: string, ...: any): string
-		const template = router.get(locale, key)
-		const count = select("#", ...)
+	-- A sentence whose arguments do not fit its placeholders reads as its bare template rather
+	-- than raising on the client: a missing key with a `%` in it, a translation a lint did not
+	-- see. The lint (`Lint`) is the gate; this is the safety net.
+	local function format(template: string, ...: any): string
+		local ok, text = pcall(string.format, template, ...)
+		return if ok then text else template
+	end
+
+	local function get(key: string, ...: any): string
+		local template = router.get(locale, key)
+		local count = select("#", ...)
 		if count == 0 then
+			-- The common call is a key alone: no format is run, and the template's escapes
+			-- stay as written.
 			return template
 		end
-		const args = table.pack(...)
+		local args = table.pack(...)
 		resolve(args, count)
-		return string.format(template, table.unpack(args, 1, count))
+		return format(template, table.unpack(args, 1, count))
 	end
 
 	-- The forms of a key: this locale's, else English's, so an untranslated count still agrees.
-	const function forms(key: string): (Forms?, string)
-		const own = plurals[locale]
+	local function forms(key: string): (Forms?, string)
+		local own = plurals[locale]
 		if own ~= nil and own[key] ~= nil then
 			return own[key], locale
 		end
-		const fallback = plurals[english]
+		local fallback = plurals[english]
 		if fallback ~= nil and fallback[key] ~= nil and options.tables[locale] == nil then
 			return fallback[key], english
 		end
 		return nil, locale
 	end
 
-	const function count(key: string, n: number, ...: any): string
-		const extra = select("#", ...)
-		const args = table.pack(...)
+	local function count(key: string, n: number, ...: any): string
+		local extra = select("#", ...)
+		local args = table.pack(...)
 		resolve(args, extra)
 		local template: string? = nil
-		const found, ruled = forms(key)
+		local found, ruled = forms(key)
 		if found ~= nil then
 			template = found[Plural.category(ruled, n)] or found.other or found.many or found.one
 		end
-		return string.format(template or router.get(locale, key), n, table.unpack(args, 1, extra))
+		return format(template or router.get(locale, key), n, table.unpack(args, 1, extra))
 	end
 
 	return {
@@ -160,4 +172,4 @@ function Text.new(options: Options): Reader
 	}
 end
 
-return Text
+return table.freeze(Text)

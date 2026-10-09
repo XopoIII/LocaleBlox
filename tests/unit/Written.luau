@@ -1,17 +1,17 @@
 --!strict
 --- Every string is whole and in its own script.
-const Locale = require("@localeblox/Locale")
-const Spec = require("../Spec")
-const Written = require("@localeblox/Written")
+local Locale = require("@localeblox/Locale")
+local Spec = require("../Spec")
+local Written = require("@localeblox/Written")
 
-const CYRILLIC = utf8.char(0x416, 0x443, 0x43A)
-const ARABIC = utf8.char(0x646, 0x645, 0x644)
-const THAI = utf8.char(0xE21, 0xE14)
-const KANA = utf8.char(0x30A2, 0x30EA)
-const HAN = utf8.char(0x86C1)
-const HANGUL = utf8.char(0xAC1C, 0xBBF8)
-const DEVANAGARI = utf8.char(0x91A, 0x940)
-const E_ACUTE = utf8.char(0xE9)
+local CYRILLIC = utf8.char(0x416, 0x443, 0x43A)
+local ARABIC = utf8.char(0x646, 0x645, 0x644)
+local THAI = utf8.char(0xE21, 0xE14)
+local KANA = utf8.char(0x30A2, 0x30EA)
+local HAN = utf8.char(0x86C1)
+local HANGUL = utf8.char(0xAC1C, 0xBBF8)
+local DEVANAGARI = utf8.char(0x91A, 0x940)
+local E_ACUTE = utf8.char(0xE9)
 
 Spec.test("each script in its own table is clean", function()
 	Spec.equal(
@@ -86,7 +86,7 @@ Spec.test("broken encoding is found", function()
 end)
 
 Spec.test("tables keyed by a locale type are checked as tables keyed by a string are", function()
-	const tables: Locale.Tables = { en = { a = "Feed" }, ru = { a = "Feed" } }
+	local tables: Locale.Tables = { en = { a = "Feed" }, ru = { a = "Feed" } }
 	Spec.equal(Written.check(tables), { "ru.a: no cyrillic letter (untranslated?)" })
 end)
 

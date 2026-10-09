@@ -10,32 +10,32 @@
 ---   "!" and "?" per table.
 ---
 --- It does not judge whether a translation reads well.
-const Parse = require("./Parse")
+local Parse = require("./Parse")
 
-const Lint = {}
+local Lint = {}
 
 type Table = { [string]: string }
 export type Locales = { [string]: Table }
 export type Forms = { [string]: string }
 export type Plurals = { [string]: { [string]: Forms } }
 
-const FULLWIDTH_BANG, FULLWIDTH_QUERY = utf8.char(0xFF01), utf8.char(0xFF1F)
-const COMBINING_ACUTE = utf8.char(0x301)
+local FULLWIDTH_BANG, FULLWIDTH_QUERY = utf8.char(0xFF01), utf8.char(0xFF1F)
+local COMBINING_ACUTE = utf8.char(0x301)
 
 -- Glyphs that exist in one Chinese script only, by code point: the Simplified forms, and the
 -- Traditional forms of the same words in the same order.
 -- stylua: ignore
-const SIMPLIFIED = {
+local SIMPLIFIED = {
 	0x4EEC, 0x95E8, 0x5F00, 0x5173, 0x53D1, 0x65F6, 0x7535, 0x89C1, 0x8BF4, 0x8BED, 0x4E70, 0x5356,
 	0x56FD, 0x5B66, 0x5B9E, 0x6218, 0x56FE, 0x56E2, 0x5458, 0x4E66, 0x8D39, 0x987A, 0x949F, 0x4E1C,
 }
 -- stylua: ignore
-const TRADITIONAL = {
+local TRADITIONAL = {
 	0x5011, 0x9580, 0x958B, 0x95DC, 0x767C, 0x6642, 0x96FB, 0x898B, 0x8AAA, 0x8A9E, 0x8CB7, 0x8CE3,
 	0x570B, 0x5B78, 0x5BE6, 0x6230, 0x5716, 0x5718, 0x54E1, 0x66F8, 0x8CBB, 0x9806, 0x9418, 0x6771,
 }
 
-const CATEGORIES: { [string]: boolean } = {
+local CATEGORIES: { [string]: boolean } = {
 	zero = true,
 	one = true,
 	two = true,
@@ -44,11 +44,11 @@ const CATEGORIES: { [string]: boolean } = {
 	other = true,
 }
 
-const function contains(haystack: string, needle: string): boolean
+local function contains(haystack: string, needle: string): boolean
 	return string.find(haystack, needle, 1, true) ~= nil
 end
 
-const function sameSpecifiers(a: { string }, b: { string }): boolean
+local function sameSpecifiers(a: { string }, b: { string }): boolean
 	if #a ~= #b then
 		return false
 	end
@@ -61,7 +61,7 @@ const function sameSpecifiers(a: { string }, b: { string }): boolean
 end
 
 -- The first glyph of `points` found in `text`, as a "U+XXXX" label.
-const function foreign(text: string, points: { number }): string?
+local function foreign(text: string, points: { number }): string?
 	for _, point in points do
 		if contains(text, utf8.char(point)) then
 			return string.format("U+%04X", point)
@@ -70,19 +70,19 @@ const function foreign(text: string, points: { number }): string?
 	return nil
 end
 
-const function chinese(code: string, own: Table, bad: (string) -> ())
-	const points = if code == "zh-hant" then SIMPLIFIED else TRADITIONAL
-	const wrong = if code == "zh-hant" then "Simplified" else "Traditional"
+local function chinese(code: string, own: Table, bad: (string) -> ())
+	local points = if code == "zh-hant" then SIMPLIFIED else TRADITIONAL
+	local wrong = if code == "zh-hant" then "Simplified" else "Traditional"
 	local full: string? = nil
 	local half: string? = nil
-	const keys: { string } = {}
+	local keys: { string } = {}
 	for key in own do
 		table.insert(keys, key)
 	end
 	table.sort(keys)
 	for _, key in keys do
-		const value = own[key]
-		const glyph = foreign(value, points)
+		local value = own[key]
+		local glyph = foreign(value, points)
 		if glyph ~= nil then
 			bad(`{code}.{key}: {wrong} glyph {glyph} in this table`)
 		end
@@ -101,16 +101,16 @@ end
 --> The disagreements between every locale and the English table. The tables are keyed by locale
 --> code: a game's own `Tables`, or what `Parse.source` read.
 function Lint.tables<Code>(given: { [Code]: Table }): { string }
-	const locales: Locales = {}
+	local locales: Locales = {}
 	for code, own in given do
 		locales[tostring(code)] = own
 	end
-	const out: { string } = {}
-	const function bad(message: string)
+	local out: { string } = {}
+	local function bad(message: string)
 		table.insert(out, message)
 	end
 
-	const en = locales.en
+	local en = locales.en
 	if en == nil then
 		return { "en: there is no English table" }
 	end
@@ -125,12 +125,12 @@ function Lint.tables<Code>(given: { [Code]: Table }): { string }
 			continue
 		end
 		for key, source in en do
-			const value = own[key]
+			local value = own[key]
 			if value == nil then
 				bad(`{code}: missing key "{key}"`)
 			elseif not sameSpecifiers(Parse.specifiers(source), Parse.specifiers(value)) then
-				const theirs = table.concat(Parse.specifiers(value), ",")
-				const ours = table.concat(Parse.specifiers(source), ",")
+				local theirs = table.concat(Parse.specifiers(value), ",")
+				local ours = table.concat(Parse.specifiers(source), ",")
 				bad(`{code}.{key}: placeholders [{theirs}] are not English's [{ours}]`)
 			end
 		end
@@ -158,15 +158,15 @@ end
 --> category that is not CLDR's, a form whose placeholders are not English's, an empty form, and a
 --> set of forms without "other" or "many" to fall back on.
 function Lint.plurals(en: Table, plurals: Plurals): { string }
-	const out: { string } = {}
+	local out: { string } = {}
 	for code, byKey in plurals do
 		for key, forms in byKey do
-			const source = en[key]
+			local source = en[key]
 			if source == nil then
 				table.insert(out, `{code}.{key}: counted key is not in English`)
 				continue
 			end
-			const wanted = Parse.specifiers(source)
+			local wanted = Parse.specifiers(source)
 			for category, form in forms do
 				if not CATEGORIES[category] then
 					table.insert(out, `{code}.{key}.{category}: not a plural category`)
@@ -202,40 +202,40 @@ function Lint.names<Code, UiCode>(
 	locales: { string }?,
 	where: string?
 ): { string }
-	const place = where or "names"
-	const asked: { string } = locales or {}
-	const names: Locales = {}
+	local place = where or "names"
+	local asked: { string } = locales or {}
+	local names: Locales = {}
 	for code, own in given do
 		names[tostring(code)] = own
 	end
-	const ui: Locales = {}
+	local ui: Locales = {}
 	if words ~= nil then
 		for code, own in words do
 			ui[tostring(code)] = own
 		end
 	end
-	const known: { [string]: boolean } = {}
+	local known: { [string]: boolean } = {}
 	for _, id in ids do
 		known[id] = true
 	end
 
-	const out: { string } = {}
+	local out: { string } = {}
 	for _, code in asked do
 		if names[code] == nil then
 			table.insert(out, `{place}/{code}: no table`)
 		end
 	end
 	for code, own in names do
-		const taken: { [string]: string } = {}
-		const uiWords: { [string]: string } = {}
-		const ownWords = ui[code]
+		local taken: { [string]: string } = {}
+		local uiWords: { [string]: string } = {}
+		local ownWords = ui[code]
 		if ownWords ~= nil then
 			for key, value in ownWords do
 				uiWords[string.lower(value)] = key
 			end
 		end
 		for _, id in ids do
-			const name = own[id]
+			local name = own[id]
 			if name == nil or name == "" then
 				table.insert(out, `{place}/{code}.{id}: missing (it would show its id)`)
 				continue
@@ -244,7 +244,7 @@ function Lint.names<Code, UiCode>(
 				table.insert(out, `{place}/{code}.{id}: "{name}" is also {taken[name]}'s name`)
 			end
 			taken[name] = id
-			const word = uiWords[string.lower(name)]
+			local word = uiWords[string.lower(name)]
 			if word ~= nil then
 				table.insert(out, `{place}/{code}.{id}: "{name}" is the same word as {code}.{word}`)
 			end
@@ -259,4 +259,4 @@ function Lint.names<Code, UiCode>(
 	return out
 end
 
-return Lint
+return table.freeze(Lint)

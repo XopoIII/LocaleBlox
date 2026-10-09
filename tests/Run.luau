@@ -4,8 +4,8 @@
 --- The whole library is plain Luau and runs here: nothing in it needs Roblox.
 ---
 --- Run from the repository root: `luneblox run tests/Run --yes` (or `sh scripts/run-tests.sh`).
-const Runtime = require("./Runtime")
-const Spec = require("./Spec")
+local Runtime = require("./Runtime")
+local Spec = require("./Spec")
 
 Runtime.notice()
 

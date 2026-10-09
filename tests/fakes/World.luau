@@ -4,11 +4,15 @@
 --- engine as `Label` and `Localize` call, behaving as the engine does where it matters to them: a
 --- property that is set to what it already holds fires nothing, and an instance has only the
 --- properties it was made with.
-const World = {}
+local World = {}
+
+export type Connection = {
+	Disconnect: (self: Connection) -> (),
+}
 
 export type Signal = {
-	Connect: (self: Signal, listener: (...any) -> ()) -> (),
-	Once: (self: Signal, listener: (...any) -> ()) -> (),
+	Connect: (self: Signal, listener: (...any) -> ()) -> Connection,
+	Once: (self: Signal, listener: (...any) -> ()) -> Connection,
 	--> Calls every listener. A spec's own lever; the engine has no such thing.
 	fire: (...any) -> (),
 	--> How many listeners are connected.
@@ -28,19 +32,32 @@ type Listener = { call: (...any) -> (), once: boolean }
 
 function World.signal(): Signal
 	local listeners: { Listener } = {}
-	const signal = {} :: Signal
+	local signal = {} :: Signal
 
-	function signal:Connect(listener: (...any) -> ())
-		table.insert(listeners, { call = listener, once = false })
+	local function connect(listener: (...any) -> (), once: boolean): Connection
+		local entry: Listener = { call = listener, once = once }
+		table.insert(listeners, entry)
+		local connection = {} :: Connection
+		function connection:Disconnect()
+			local index = table.find(listeners, entry)
+			if index ~= nil then
+				table.remove(listeners, index)
+			end
+		end
+		return connection
 	end
 
-	function signal:Once(listener: (...any) -> ())
-		table.insert(listeners, { call = listener, once = true })
+	function signal:Connect(listener: (...any) -> ()): Connection
+		return connect(listener, false)
+	end
+
+	function signal:Once(listener: (...any) -> ()): Connection
+		return connect(listener, true)
 	end
 
 	function signal.fire(...: any)
-		const now = listeners
-		const kept: { Listener } = {}
+		local now = listeners
+		local kept: { Listener } = {}
 		for _, listener in now do
 			if not listener.once then
 				table.insert(kept, listener)
@@ -60,10 +77,10 @@ function World.signal(): Signal
 end
 
 function World.new(): World
-	const added: { [string]: Signal } = {}
-	const tagged: { [string]: { any } } = {}
+	local added: { [string]: Signal } = {}
+	local tagged: { [string]: { any } } = {}
 
-	const function addedSignal(tag: string): Signal
+	local function addedSignal(tag: string): Signal
 		local signal = added[tag]
 		if signal == nil then
 			signal = World.signal()
@@ -72,7 +89,7 @@ function World.new(): World
 		return signal
 	end
 
-	const collection = {}
+	local collection = {}
 	function collection:GetInstanceAddedSignal(tag: string): Signal
 		return addedSignal(tag)
 	end
@@ -80,16 +97,16 @@ function World.new(): World
 		return table.clone(tagged[tag] or {})
 	end
 
-	const world = {} :: World
+	local world = {} :: World
 	world.collection = collection
 
 	function world.instance(properties: { [string]: any }): any
-		const held: { [string]: any } = table.clone(properties)
-		const attributes: { [string]: any } = {}
-		const tags: { [string]: boolean } = {}
-		const changed: { [string]: Signal } = {}
+		local held: { [string]: any } = table.clone(properties)
+		local attributes: { [string]: any } = {}
+		local tags: { [string]: boolean } = {}
+		local changed: { [string]: Signal } = {}
 
-		const methods = {}
+		local methods = {}
 		methods.AttributeChanged = World.signal()
 		methods.Destroying = World.signal()
 
@@ -121,7 +138,7 @@ function World.new(): World
 			return signal
 		end
 
-		const instance: any = setmetatable({}, {
+		local instance: any = setmetatable({}, {
 			__index = function(_: any, name: string): any
 				if methods[name] ~= nil then
 					return methods[name]
@@ -136,7 +153,7 @@ function World.new(): World
 					return
 				end
 				held[name] = value
-				const signal = changed[name]
+				local signal = changed[name]
 				if signal ~= nil then
 					signal.fire()
 				end

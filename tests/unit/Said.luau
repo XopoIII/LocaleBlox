@@ -1,12 +1,12 @@
 --!strict
 --- A sentence a server says as a key and its arguments, and a client reads in its own language.
-const serde = require("@lune/serde")
+local serde = require("@lune/serde")
 
-const Said = require("@localeblox/Said")
-const Spec = require("../Spec")
-const Text = require("@localeblox/Text")
+local Said = require("@localeblox/Said")
+local Spec = require("../Spec")
+local Text = require("@localeblox/Text")
 
-const said = Said.new({
+local said = Said.new({
 	encode = function(value: any): string
 		return serde.encode("json", value)
 	end,
@@ -15,21 +15,21 @@ const said = Said.new({
 	end,
 })
 
-const TABLES = {
+local TABLES = {
 	en = { hatched = "%s hatched a %s on day %d", plain = "Nothing to say", zoneHarbour = "Harbour" },
 	ru = { hatched = "RU %s hatched %s day %d", plain = "RU nothing", zoneHarbour = "RU harbour" },
 }
-const PETS = { ru = { Goldbun = "RU goldbun" } }
-const ru = Text.new({ tables = TABLES, names = { pet = PETS }, localeId = "ru" })
-const en = Text.new({ tables = TABLES, names = { pet = PETS }, localeId = "en" })
+local PETS = { ru = { Goldbun = "RU goldbun" } }
+local ru = Text.new({ tables = TABLES, names = { pet = PETS }, localeId = "ru" })
+local en = Text.new({ tables = TABLES, names = { pet = PETS }, localeId = "en" })
 
 Spec.test("a sentence goes to a string and comes back as its key and arguments", function()
-	const wire = said.encode("hatched", { "Ann", { pet = "Goldbun" }, 3 })
+	local wire = said.encode("hatched", { "Ann", { pet = "Goldbun" }, 3 })
 	Spec.equal(type(wire), "string")
-	const key, args = said.decode(wire)
+	local key, args = said.decode(wire)
 	Spec.equal(key, "hatched")
 	Spec.equal(args, { "Ann", { pet = "Goldbun" }, 3 })
-	const bare, none = said.decode(said.encode("plain"))
+	local bare, none = said.decode(said.encode("plain"))
 	Spec.equal(bare, "plain")
 	Spec.equal(none, {}, "no arguments is an empty list")
 	Spec.equal(said.encode("plain"), said.encode("plain", {}), "and encodes as one")
@@ -37,22 +37,22 @@ end)
 
 Spec.test("anything that is not a sentence decodes to nothing", function()
 	for _, text in { "", "not json", "[1,2]", '{"a":[1]}', '{"k":5}', "5", "null" } do
-		const key, args = said.decode(text)
+		local key, args = said.decode(text)
 		Spec.equal(key, nil, text)
 		Spec.equal(args, {}, text)
 	end
-	const key = said.decode(nil)
+	local key = said.decode(nil)
 	Spec.equal(key, nil, "nil")
 	Spec.equal(said.decode(5), nil, "a number")
 	Spec.equal(said.decode({ k = "plain" }), nil, "a table")
-	const kept, args = said.decode('{"k":"plain","a":"oops"}')
+	local kept, args = said.decode('{"k":"plain","a":"oops"}')
 	Spec.equal(kept, "plain", "a key with arguments of the wrong kind keeps its key")
 	Spec.equal(args, {})
 end)
 
 Spec.test("only a string is ever handed to the codec, and what it raises is never a sentence", function()
 	local asked = 0
-	const lenient = Said.new({
+	local lenient = Said.new({
 		encode = function(_value: any): string
 			return "x"
 		end,
@@ -70,7 +70,7 @@ Spec.test("only a string is ever handed to the codec, and what it raises is neve
 	Spec.equal(lenient.decode("anything"), "leak", "a string is its to read")
 	Spec.equal(asked, 1)
 
-	const raising = Said.new({
+	local raising = Said.new({
 		encode = function(_value: any): string
 			return "x"
 		end,
@@ -82,7 +82,7 @@ Spec.test("only a string is ever handed to the codec, and what it raises is neve
 end)
 
 Spec.test("a client reads a sentence in its own language, names and keys resolved", function()
-	const wire = said.encode("hatched", { { key = "zoneHarbour" }, { pet = "Goldbun" }, 3 })
+	local wire = said.encode("hatched", { { key = "zoneHarbour" }, { pet = "Goldbun" }, 3 })
 	Spec.equal(said.read(ru, wire), "RU RU harbour hatched RU goldbun day 3")
 	Spec.equal(said.read(en, wire), "Harbour hatched a Goldbun on day 3")
 	Spec.equal(said.read(ru, said.encode("plain")), "RU nothing")
@@ -117,9 +117,9 @@ Spec.test("table arguments are the same when they hold the same fields", functio
 end)
 
 Spec.test("a copy is the caller's arguments as they were", function()
-	const inner = { pet = "Goldbun" }
-	const args: { Said.Arg } = { "Ann", inner, 3 }
-	const kept = said.copy(args)
+	local inner = { pet = "Goldbun" }
+	local args: { Said.Arg } = { "Ann", inner, 3 }
+	local kept = said.copy(args)
 	inner.pet = "Pipkin"
 	args[1] = "Bob"
 	table.insert(args, 4)

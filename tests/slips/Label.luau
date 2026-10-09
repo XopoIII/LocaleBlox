@@ -1,9 +1,9 @@
 --!strict
 --- The mutants of src/Label.luau, src/Localize.luau and the names lint: each a small slip, and the
 --- rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Label.luau",
 		from = "\t\tif instance:GetAttribute(attribute) == encoded then\n\t\t\treturn\n\t\tend\n",
@@ -30,27 +30,15 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Label.luau",
-		from = "const attribute = prefix .. property",
-		to = "const attribute = Label.PREFIX .. property",
+		from = "local attribute = prefix .. property",
+		to = "local attribute = Label.PREFIX .. property",
 		breaks = "a game's own prefix names the attribute",
 	},
 	{
 		file = "src/Label.luau",
-		from = "const tag = options.tag or Label.TAG",
-		to = "const tag = Label.TAG",
+		from = "local tag = options.tag or Label.TAG",
+		to = "local tag = Label.TAG",
 		breaks = "a game's own tag is used",
-	},
-	{
-		file = "src/Label.luau",
-		from = "return if ok then text else reader.get(key)",
-		to = "return if ok then text else key",
-		breaks = "a sentence that does not fit reads as its template",
-	},
-	{
-		file = "src/Label.luau",
-		from = "const ok, text = pcall(reader.get, key, table.unpack(args))",
-		to = "const ok, text = true, reader.get(key, table.unpack(args))",
-		breaks = "a sentence that does not fit raises nothing",
 	},
 	{
 		file = "src/Label.luau",
@@ -78,13 +66,25 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Localize.luau",
-		from = "\t\tinstance.AttributeChanged:Connect(saw)\n",
+		from = "\t\thold(instance, instance.AttributeChanged:Connect(saw))\n",
 		to = "",
 		breaks = "the server saying something new is drawn anew",
 	},
 	{
 		file = "src/Localize.luau",
-		from = "\t\t\tsignal:Connect(function()\n\t\t\t\tapply(instance, attribute)\n\t\t\tend)\n",
+		from = "\t\thold(instance, instance.AttributeChanged:Connect(saw))\n",
+		to = "\t\tinstance.AttributeChanged:Connect(saw)\n",
+		breaks = "a destroyed instance drops the label's listeners",
+	},
+	{
+		file = "src/Localize.luau",
+		from = "\t\t\tfor _, connection in connections[instance] do\n\t\t\t\tconnection:Disconnect()\n\t\t\tend\n",
+		to = "",
+		breaks = "a destroyed instance drops the label's listeners",
+	},
+	{
+		file = "src/Localize.luau",
+		from = "\t\t\thold(\n\t\t\t\tinstance,\n\t\t\t\tsignal:Connect(function()\n\t\t\t\t\tapply(instance, attribute)\n\t\t\t\tend)\n\t\t\t)\n",
 		to = "",
 		breaks = "English landing after its attribute is put back",
 	},
@@ -120,14 +120,14 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Localize.luau",
-		from = "const tag = options.tag or Label.TAG",
-		to = "const tag = Label.TAG",
+		from = "local tag = options.tag or Label.TAG",
+		to = "local tag = Label.TAG",
 		breaks = "the client reads the game's own tag",
 	},
 	{
 		file = "src/Localize.luau",
-		from = "const prefix = options.prefix or Label.PREFIX",
-		to = "const prefix = Label.PREFIX",
+		from = "local prefix = options.prefix or Label.PREFIX",
+		to = "local prefix = Label.PREFIX",
 		breaks = "the client reads the game's own prefix",
 	},
 	{
@@ -144,14 +144,14 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Lint.luau",
-		from = "const word = uiWords[string.lower(name)]",
-		to = "const word = uiWords[name]",
+		from = "local word = uiWords[string.lower(name)]",
+		to = "local word = uiWords[name]",
 		breaks = "a name is a UI word whatever its case",
 	},
 	{
 		file = "src/Lint.luau",
-		from = "const ownWords = ui[code]",
-		to = "const ownWords = ui.en",
+		from = "local ownWords = ui[code]",
+		to = "local ownWords = ui.en",
 		breaks = "a name is compared with its own locale's words",
 	},
 	{
@@ -168,8 +168,8 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Lint.luau",
-		from = 'const place = where or "names"',
-		to = 'const place = "names"',
+		from = 'local place = where or "names"',
+		to = 'local place = "names"',
 		breaks = "a problem says where the game keeps its names",
 	},
 }

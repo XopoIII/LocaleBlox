@@ -1,8 +1,8 @@
 --!strict
 --- The mutants of src/Usage.luau: each a small slip in a rule, and the rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Usage.luau",
 		from = "elseif words[word] and table.find(data, word) == nil then",
@@ -26,6 +26,12 @@ const MUTANTS: { Mutant.Mutant } = {
 		from = "\t\t\t\tused[literal] = true\n",
 		to = "",
 		breaks = "a key the code names is used",
+	},
+	{
+		file = "src/Usage.luau",
+		from = ', "`(%l+%u[%w]*)`" }',
+		to = " }",
+		breaks = "a key may stand in a backtick string",
 	},
 }
 

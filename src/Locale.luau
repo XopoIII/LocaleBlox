@@ -4,7 +4,7 @@
 --- A Roblox `LocaleId` is a BCP-47 tag ("pt-br", "fil-ph", "zh-hant"). `localeFor` resolves it to
 --- one of twenty-five locales; `router` binds a game's tables to a lookup that falls back from the
 --- locale to English to the key itself.
-const Locale = {}
+local Locale = {}
 
 export type Locale =
 	"ru"
@@ -79,7 +79,7 @@ Locale.ALL = table.freeze({
 -- Language subtag to locale. Belarusian and Kazakh read Russian (those markets play in Russian),
 -- Ukrainian has its own table, Tagalog reads Filipino. Chinese and the three regional splits are
 -- decided in `localeFor`.
-const LANGUAGE: { [string]: Locale } = {
+local LANGUAGE: { [string]: Locale } = {
 	ru = "ru",
 	be = "ru",
 	kk = "ru",
@@ -103,17 +103,17 @@ const LANGUAGE: { [string]: Locale } = {
 
 -- The script tag and the regions written in Traditional Chinese. Every other Chinese tag, a bare
 -- "zh" among them, reads Simplified.
-const TRADITIONAL: { [string]: boolean } = { hant = true, tw = true, hk = true, mo = true }
+local TRADITIONAL: { [string]: boolean } = { hant = true, tw = true, hk = true, mo = true }
 
 -- The locales written right to left.
-const RTL: { [string]: boolean } = { ar = true }
+local RTL: { [string]: boolean } = { ar = true }
 
 --> The locale a Roblox LocaleId reads. Case and the separator ("-" or "_") do not matter.
 function Locale.localeFor(localeId: string): Locale
-	const lower = string.lower(localeId)
-	const language = string.match(lower, "^%a+") or ""
+	local lower = string.lower(localeId)
+	local language = string.match(lower, "^%a+") or ""
 	if language == "zh" then
-		const subtag = string.match(lower, "^zh[-_](%a+)")
+		local subtag = string.match(lower, "^zh[-_](%a+)")
 		return if subtag ~= nil and TRADITIONAL[subtag] then "zh-hant" else "zh-hans"
 	elseif language == "es" then
 		return if string.match(lower, "^es[-_]es") then "es-ES" else "es"
@@ -132,21 +132,21 @@ end
 
 --> Binds the lookups to one game's tables. The game must ship an English table.
 function Locale.router(tables: Tables): Router
-	const english: Locale = "en"
-	const en = tables[english]
+	local english: Locale = "en"
+	local en = tables[english]
 	assert(en ~= nil, "LocaleBlox: the tables hold no English table")
 
 	return {
 		localeFor = Locale.localeFor,
 
 		get = function(locale: Locale, key: string): string
-			const own = tables[locale] or en
+			local own = tables[locale] or en
 			return own[key] or en[key] or key
 		end,
 
 		keys = function(locale: Locale): { string }
-			const out: { string } = {}
-			const own = tables[locale]
+			local out: { string } = {}
+			local own = tables[locale]
 			if own ~= nil then
 				for key in own do
 					table.insert(out, key)
@@ -157,7 +157,7 @@ function Locale.router(tables: Tables): Router
 		end,
 
 		populated = function(): { Locale }
-			const out: { Locale } = {}
+			local out: { Locale } = {}
 			for locale in tables do
 				table.insert(out, locale)
 			end
@@ -167,4 +167,4 @@ function Locale.router(tables: Tables): Router
 	}
 end
 
-return Locale
+return table.freeze(Locale)

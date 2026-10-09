@@ -1,8 +1,8 @@
 --!strict
 --- The mutants of src/Locale.luau: each a small slip in a rule, and the rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Locale.luau",
 		from = '\tbe = "ru",\n',
@@ -59,8 +59,8 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Locale.luau",
-		from = "const lower = string.lower(localeId)",
-		to = "const lower = localeId",
+		from = "local lower = string.lower(localeId)",
+		to = "local lower = localeId",
 		breaks = "case does not matter in a LocaleId",
 	},
 	{

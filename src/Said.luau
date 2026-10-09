@@ -2,8 +2,8 @@
 --- A sentence a server says, as a key and its arguments rather than finished words, so each client
 --- puts it in its own reader's language.
 ---
----     const said = Said.new({ encode = encodeJson, decode = decodeJson })
----     const wire = said.encode("hatched", { { name = "Goldbun" }, 3 })   -- server
+---     local said = Said.new({ encode = encodeJson, decode = decodeJson })
+---     local wire = said.encode("hatched", { { name = "Goldbun" }, 3 })   -- server
 ---     label.Text = said.read(text, wire)                                 -- client
 ---
 --- It travels as one string: an attribute, a field of a packet. An argument is a string, a number,
@@ -11,9 +11,9 @@
 --- a name of a kind the game gave its reader (`Text`).
 ---
 --- The codec is the game's: on Roblox, `HttpService`'s JSON pair. Nothing here reads a service.
-const Text = require("./Text")
+local Text = require("./Text")
 
-const Said = {}
+local Said = {}
 
 --> How a sentence is written to a string and read back. `decode` may raise on a string that is not
 --> one of its own.
@@ -40,7 +40,7 @@ export type Said = {
 }
 
 -- Two table arguments are one when they hold the same fields.
-const function sameFields(a: { [any]: any }, b: { [any]: any }): boolean
+local function sameFields(a: { [any]: any }, b: { [any]: any }): boolean
 	for field, value in a do
 		if b[field] ~= value then
 			return false
@@ -54,7 +54,7 @@ const function sameFields(a: { [any]: any }, b: { [any]: any }): boolean
 	return true
 end
 
-const function sameArg(a: any, b: any): boolean
+local function sameArg(a: any, b: any): boolean
 	if type(a) ~= type(b) then
 		return false
 	elseif type(a) == "table" then
@@ -68,7 +68,7 @@ end
 
 --> One game's sentences over its codec.
 function Said.new(codec: Codec): Said
-	const self = {} :: Said
+	local self = {} :: Said
 
 	function self.encode(key: string, args: { Arg }?): string
 		return codec.encode({ k = key, a = args or {} })
@@ -78,7 +78,7 @@ function Said.new(codec: Codec): Said
 		if type(text) ~= "string" or text == "" then
 			return nil, {}
 		end
-		const ok, value = pcall(codec.decode, text)
+		local ok, value = pcall(codec.decode, text)
 		if not ok or type(value) ~= "table" or type(value.k) ~= "string" then
 			return nil, {}
 		end
@@ -89,8 +89,8 @@ function Said.new(codec: Codec): Said
 		if keyA ~= keyB then
 			return false
 		end
-		const a: { Arg } = argsA or {}
-		const b: { Arg } = argsB or {}
+		local a: { Arg } = argsA or {}
+		local b: { Arg } = argsB or {}
 		if #a ~= #b then
 			return false
 		end
@@ -106,7 +106,7 @@ function Said.new(codec: Codec): Said
 		if args == nil then
 			return nil
 		end
-		const out: { Arg } = {}
+		local out: { Arg } = {}
 		for index, arg in args do
 			out[index] = if type(arg) == "table" then table.clone(arg) else arg
 		end
@@ -114,7 +114,7 @@ function Said.new(codec: Codec): Said
 	end
 
 	function self.read(reader: Text.Reader, encoded: any): string
-		const key, args = self.decode(encoded)
+		local key, args = self.decode(encoded)
 		if key == nil then
 			return ""
 		end
@@ -124,4 +124,4 @@ function Said.new(codec: Codec): Said
 	return self
 end
 
-return Said
+return table.freeze(Said)

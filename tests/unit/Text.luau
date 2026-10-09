@@ -1,9 +1,9 @@
 --!strict
 --- The reader: a key to a string, in the player's locale.
-const Text = require("@localeblox/Text")
-const Spec = require("../Spec")
+local Spec = require("../Spec")
+local Text = require("@localeblox/Text")
 
-const TABLES = {
+local TABLES = {
 	en = {
 		feed = "Feed",
 		level = "Lv %d",
@@ -13,6 +13,7 @@ const TABLES = {
 		minutes = "%d min",
 		foodSugarCube = "Sugar cube",
 		upgradeSpeedHint = "faster trips",
+		full = "100%% full",
 	},
 	ru = {
 		feed = "RU feed",
@@ -27,12 +28,12 @@ const TABLES = {
 	},
 }
 
-const PLURALS = {
+local PLURALS = {
 	en = { pieces = { one = "%d / %d piece carried off", other = "%d / %d pieces carried off" } },
 	ru = { pieces = { one = "RU %d of %d one", few = "RU %d of %d few", many = "RU %d of %d many" } },
 }
 
-const function reader(localeId: string): Text.Reader
+local function reader(localeId: string): Text.Reader
 	return Text.new({ tables = TABLES, plurals = PLURALS, localeId = localeId })
 end
 
@@ -57,15 +58,22 @@ end)
 
 Spec.test("a template with no arguments is returned as written", function()
 	Spec.equal(reader("en").get("level"), "Lv %d")
+	Spec.equal(reader("en").get("full"), "100%% full", "an escaped percent stays as written")
+end)
+
+Spec.test("a sentence whose arguments do not fit reads as its bare template", function()
+	Spec.equal(reader("en").get("movedTo", "Ann"), "%s's camp moved to the %s", "too few arguments")
+	Spec.equal(reader("en").get("level", "many"), "Lv %d", "a %d handed a string")
+	Spec.equal(reader("en").count("pieces", 1), "%d / %d piece carried off", "a count short an argument")
 end)
 
 Spec.test("a counted sentence agrees with its number", function()
-	const ru = reader("ru")
+	local ru = reader("ru")
 	Spec.equal(ru.count("pieces", 1, 12), "RU 1 of 12 one")
 	Spec.equal(ru.count("pieces", 3, 12), "RU 3 of 12 few")
 	Spec.equal(ru.count("pieces", 5, 12), "RU 5 of 12 many")
 	Spec.equal(ru.count("pieces", 21, 30), "RU 21 of 30 one")
-	const en = reader("en")
+	local en = reader("en")
 	Spec.equal(en.count("pieces", 1, 12), "1 / 12 piece carried off")
 	Spec.equal(en.count("pieces", 0, 12), "0 / 12 pieces carried off")
 	Spec.equal(en.count("pieces", 2, 12), "2 / 12 pieces carried off")
@@ -78,13 +86,13 @@ Spec.test("a count with no forms uses the flat string of its locale", function()
 end)
 
 Spec.test("a locale with no table counts in English, by English's rules", function()
-	const ja = reader("ja")
+	local ja = reader("ja")
 	Spec.equal(ja.count("pieces", 1, 12), "1 / 12 piece carried off")
 	Spec.equal(ja.count("pieces", 5, 12), "5 / 12 pieces carried off")
 end)
 
 Spec.test("a category the forms lack falls back to other, then many", function()
-	const text = Text.new({
+	local text = Text.new({
 		tables = { en = { coins = "%d coins" }, ar = { coins = "AR %d flat" }, pl = { coins = "PL %d flat" } },
 		plurals = {
 			ar = { coins = { one = "AR %d one", other = "AR %d other" } },
@@ -94,13 +102,13 @@ Spec.test("a category the forms lack falls back to other, then many", function()
 	})
 	Spec.equal(text.count("coins", 1), "AR 1 one")
 	Spec.equal(text.count("coins", 2), "AR 2 other", "no two form")
-	const pl = Text.new({
+	local pl = Text.new({
 		tables = { en = { coins = "%d coins" }, pl = { coins = "PL %d flat" } },
 		plurals = { pl = { coins = { one = "PL %d one", many = "PL %d many" } } },
 		localeId = "pl",
 	})
 	Spec.equal(pl.count("coins", 3), "PL 3 many", "no few and no other form")
-	const both = Text.new({
+	local both = Text.new({
 		tables = { en = { coins = "%d coins" }, pl = { coins = "PL %d flat" } },
 		plurals = { pl = { coins = { one = "PL %d one", many = "PL %d many", other = "PL %d other" } } },
 		localeId = "pl",
@@ -109,7 +117,7 @@ Spec.test("a category the forms lack falls back to other, then many", function()
 end)
 
 Spec.test("game data reads by its key", function()
-	const en = reader("en")
+	local en = reader("en")
 	Spec.equal(en.data("food", "sugar_cube"), "Sugar cube")
 	Spec.equal(en.data("zone", "harbour"), "Harbour")
 	Spec.equal(en.data("upgrade", "speed", "hint"), "faster trips")
@@ -117,25 +125,25 @@ Spec.test("game data reads by its key", function()
 end)
 
 Spec.test("has says whether a key has text", function()
-	const ru = reader("ru")
+	local ru = reader("ru")
 	Spec.equal(ru.has("feed"), true)
 	Spec.equal(ru.has("level"), true, "through English")
 	Spec.equal(ru.has("nothing"), false)
 end)
 
 Spec.test("the reader says which locale it reads and whether it runs right to left", function()
-	const ar = reader("ar-sa")
+	local ar = reader("ar-sa")
 	Spec.equal(ar.locale(), "ar")
 	Spec.equal(ar.localeId(), "ar-sa")
 	Spec.equal(ar.isRtl(), true)
-	const ru = reader("kk-kz")
+	local ru = reader("kk-kz")
 	Spec.equal(ru.locale(), "ru")
 	Spec.equal(ru.localeId(), "kk-kz")
 	Spec.equal(ru.isRtl(), false)
 end)
 
 Spec.test("a reader with no plural forms still counts", function()
-	const text = Text.new({ tables = { en = { coins = "%d coins" } }, localeId = "en" })
+	local text = Text.new({ tables = { en = { coins = "%d coins" } }, localeId = "en" })
 	Spec.equal(text.count("coins", 1), "1 coins")
 end)
 

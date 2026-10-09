@@ -186,7 +186,7 @@ local problems = LocaleBlox.Lint.tables(locales)
 ```
 
 - `Parse.source(source, out, aliases?)` adds every table of a Luau source to `out[code][key]`. A
-  table opens with `local name: Type = {` (or `const`) on a line of its own, holds one
+  table opens with `local name: Type = {` on a line of its own, holds one
   `key = "value",` per line one tab deep, and closes with `}` at the start of a line. The type is
   any type written on that line (`Table`, `{ [string]: string }`) or none. `aliases` renames a
   variable to its locale code, which is also how a names file whose table is called `names`

@@ -11,11 +11,11 @@
 --- `collection` is the engine's CollectionService, handed in: this module calls
 --- `GetInstanceAddedSignal` and `GetTagged` on it and the attribute and property signals of each
 --- tagged instance. It reads no service itself and never touches `game`.
-const Label = require("./Label")
-const Said = require("./Said")
-const Text = require("./Text")
+local Label = require("./Label")
+local Said = require("./Said")
+local Text = require("./Text")
 
-const Localize = {}
+local Localize = {}
 
 export type Options = {
 	--- The game's sentences (`Said.new`), the same codec the server's `Label` writes with.
@@ -32,17 +32,17 @@ export type Options = {
 
 --> Starts rewriting every tagged instance, those there now and those that come.
 function Localize.start(options: Options)
-	const said = options.said
-	const text = options.text
-	const tag = options.tag or Label.TAG
-	const prefix = options.prefix or Label.PREFIX
+	local said = options.said
+	local text = options.text
+	local tag = options.tag or Label.TAG
+	local prefix = options.prefix or Label.PREFIX
 
-	const function apply(instance: any, attribute: string)
-		const value = instance:GetAttribute(attribute)
+	local function apply(instance: any, attribute: string)
+		local value = instance:GetAttribute(attribute)
 		if value == nil then
 			return
 		end
-		const words = said.read(text, value)
+		local words = said.read(text, value)
 		if words ~= "" then
 			-- A property the instance does not have costs this label, not the others.
 			pcall(function()
@@ -51,34 +51,55 @@ function Localize.start(options: Options)
 		end
 	end
 
-	const watched: { [any]: { [string]: boolean } } = {}
+	local watched: { [any]: { [string]: boolean } } = {}
+	local connections: { [any]: { any } } = {}
+
+	-- Every listener of an instance is held, so it can be dropped when the instance is destroyed:
+	-- a label's listeners must not keep a dead sign alive. A connection that lands after the
+	-- instance went is dropped at once.
+	local function hold(instance: any, connection: any)
+		local list = connections[instance]
+		if list ~= nil then
+			table.insert(list, connection)
+		else
+			connection:Disconnect()
+		end
+	end
 
 	-- The server's English can land after its attribute, so a property that changes under a sentence
 	-- is put back into the reader's language. Setting the same text again fires nothing, so this
 	-- settles at once.
-	const function follow(instance: any, attribute: string)
-		const properties = watched[instance]
+	local function follow(instance: any, attribute: string)
+		local properties = watched[instance]
 		if properties == nil or properties[attribute] then
 			return
 		end
 		properties[attribute] = true
-		const ok, signal = pcall(instance.GetPropertyChangedSignal, instance, string.sub(attribute, #prefix + 1))
+		local ok, signal = pcall(instance.GetPropertyChangedSignal, instance, string.sub(attribute, #prefix + 1))
 		if ok then
-			signal:Connect(function()
-				apply(instance, attribute)
-			end)
+			hold(
+				instance,
+				signal:Connect(function()
+					apply(instance, attribute)
+				end)
+			)
 		end
 	end
 
-	const function watch(instance: any)
+	local function watch(instance: any)
 		if watched[instance] ~= nil then
 			return
 		end
 		watched[instance] = {}
+		connections[instance] = {}
 		instance.Destroying:Once(function()
 			watched[instance] = nil
+			for _, connection in connections[instance] do
+				connection:Disconnect()
+			end
+			connections[instance] = nil
 		end)
-		const function saw(attribute: string)
+		local function saw(attribute: string)
 			if string.sub(attribute, 1, #prefix) == prefix then
 				follow(instance, attribute)
 				apply(instance, attribute)
@@ -87,7 +108,7 @@ function Localize.start(options: Options)
 		for attribute in instance:GetAttributes() do
 			saw(attribute)
 		end
-		instance.AttributeChanged:Connect(saw)
+		hold(instance, instance.AttributeChanged:Connect(saw))
 	end
 
 	options.collection:GetInstanceAddedSignal(tag):Connect(watch)
@@ -96,4 +117,4 @@ function Localize.start(options: Options)
 	end
 end
 
-return Localize
+return table.freeze(Localize)

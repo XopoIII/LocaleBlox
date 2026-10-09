@@ -6,10 +6,10 @@
 ---
 ---     Keys.of("food", "sugar_cube")            --> "foodSugarCube"
 ---     Keys.of("product", "double_pay", "blurb")  --> "productDoublePayBlurb"
-const Keys = {}
+local Keys = {}
 
 -- "double_pay" -> "DoublePay", "Half-Moon" -> "HalfMoon", "sea king" -> "SeaKing".
-const function pascal(name: string): string
+local function pascal(name: string): string
 	local out = string.gsub(name, "[^%w]+(%w)", string.upper)
 	out = string.gsub(out, "[^%w]", "")
 	return (string.gsub(out, "^%l", string.upper))
@@ -24,4 +24,4 @@ function Keys.of(kind: string, name: string, field: string?): string
 	return key
 end
 
-return Keys
+return table.freeze(Keys)
