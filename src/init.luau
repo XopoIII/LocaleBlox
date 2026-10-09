@@ -1,8 +1,8 @@
 --!strict
 --- LocaleBlox: a game's words in twenty-five languages, as Luau tables looked up by key.
 ---
----     const LocaleBlox = require(path.to.LocaleBlox)
----     const text = LocaleBlox.Text.new({ tables = Tables, plurals = Plurals, localeId = player.LocaleId })
+---     local LocaleBlox = require(path.to.LocaleBlox)
+---     local text = LocaleBlox.Text.new({ tables = Tables, plurals = Plurals, localeId = player.LocaleId })
 ---     label.Text = text.get("open")
 ---     label.Text = text.count("itemsCarried", 3, 12)
 ---
@@ -11,18 +11,18 @@
 --- instances, are handed the instance and the collection service. `Parse`, `Lint`, `Written` and
 --- `Usage` are the lint, as functions over text and tables, for a game's own scripts and specs.
 --- See README.md.
-const Keys = require("@self/Keys")
-const Label = require("@self/Label")
-const Lint = require("@self/Lint")
-const Locale = require("@self/Locale")
-const Localize = require("@self/Localize")
-const Names = require("@self/Names")
-const Parse = require("@self/Parse")
-const Plural = require("@self/Plural")
-const Said = require("@self/Said")
-const Text = require("@self/Text")
-const Usage = require("@self/Usage")
-const Written = require("@self/Written")
+local Keys = require("@self/Keys")
+local Label = require("@self/Label")
+local Lint = require("@self/Lint")
+local Locale = require("@self/Locale")
+local Localize = require("@self/Localize")
+local Names = require("@self/Names")
+local Parse = require("@self/Parse")
+local Plural = require("@self/Plural")
+local Said = require("@self/Said")
+local Text = require("@self/Text")
+local Usage = require("@self/Usage")
+local Written = require("@self/Written")
 
 export type Locale = Locale.Locale
 export type Table = Locale.Table

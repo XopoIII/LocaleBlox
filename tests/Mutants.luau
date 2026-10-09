@@ -1,11 +1,11 @@
 --!strict
 --- The mutants tests/Mutate runs, a file of them per module of src/ (tests/slips/).
 --- Every `from` must occur exactly once in its file.
-const Mutant = require("./slips/Mutant")
+local Mutant = require("./slips/Mutant")
 
 export type Mutant = Mutant.Mutant
 
-const MUTANTS: { Mutant } = {}
+local MUTANTS: { Mutant } = {}
 for _, list in
 	{
 		require("./slips/Locale"),

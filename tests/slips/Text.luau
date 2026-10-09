@@ -1,8 +1,8 @@
 --!strict
 --- The mutants of src/Text.luau: each a small slip in a rule, and the rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Text.luau",
 		from = "return router.get(locale, arg.key)",
@@ -11,8 +11,8 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Text.luau",
-		from = "\t\tif count == 0 then\n\t\t\treturn template\n\t\tend\n",
-		to = "",
+		from = "\t\t\treturn template\n\t\tend\n",
+		to = "\t\t\treturn string.format(template)\n\t\tend\n",
 		breaks = "a template with no arguments is returned as written",
 	},
 	{
@@ -41,9 +41,15 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Text.luau",
-		from = "return string.format(template or router.get(locale, key), n, table.unpack(args, 1, extra))",
-		to = "return string.format(template or router.get(locale, key), table.unpack(args, 1, extra))",
+		from = "return format(template or router.get(locale, key), n, table.unpack(args, 1, extra))",
+		to = "return format(template or router.get(locale, key), table.unpack(args, 1, extra))",
 		breaks = "the count is the first format argument",
+	},
+	{
+		file = "src/Text.luau",
+		from = "return if ok then text else template",
+		to = "return text",
+		breaks = "a sentence whose arguments do not fit reads as its bare template",
 	},
 	{
 		file = "src/Text.luau",

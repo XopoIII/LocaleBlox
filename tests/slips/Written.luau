@@ -1,8 +1,8 @@
 --!strict
 --- The mutants of src/Written.luau: each a small slip in a rule, and the rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Written.luau",
 		from = 'if encoding(where, text, bad) and code ~= "en" then',
@@ -83,8 +83,8 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Written.luau",
-		from = "\ttable.sort(out)\n\treturn out\nend\n\nreturn Written",
-		to = "\treturn out\nend\n\nreturn Written",
+		from = "\ttable.sort(out)\n\treturn out\nend\n\nreturn table.freeze(Written)",
+		to = "\treturn out\nend\n\nreturn table.freeze(Written)",
 		breaks = "the problems come sorted",
 	},
 }

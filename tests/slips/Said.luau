@@ -1,8 +1,8 @@
 --!strict
 --- The mutants of src/Said.luau: each a small slip in a rule, and the rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Said.luau",
 		from = "return codec.encode({ k = key, a = args or {} })",

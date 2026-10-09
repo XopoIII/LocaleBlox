@@ -5,6 +5,24 @@ semantic versioning.
 
 ## Unreleased
 
+### Changed
+
+- Every module is stock Luau again: `const` is not a Luau keyword, and a file only a dialect
+  parsed was a file no Roblox game could load.
+- Every module table is frozen.
+
+### Fixed
+
+- `Text.get` and `Text.count`: arguments that do not fit the placeholders give the bare template
+  back rather than raising on the client.
+- `Plural.category`: a fractional count is "other" in every locale (CLDR: a fraction agrees with
+  no noun); it was rounded down before.
+- `Parse.specifiers`: a lone `%` of plain text ("Save 50% today") is no longer read as a
+  specifier; the conversion letter must be one `string.format` knows.
+- `Usage.check` sees keys in single quotes and in backtick strings, not only in double quotes.
+- `Localize` drops a label's listeners when its instance is destroyed, instead of holding a dead
+  instance's connections.
+
 ## 0.2.0 - 2026-10-07
 
 What the first game still kept beside the package, made general: the names of a game's things, and

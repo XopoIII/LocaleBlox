@@ -1,7 +1,7 @@
 --!strict
 --- Which table a LocaleId reads, and the lookup's fallbacks.
-const Locale = require("@localeblox/Locale")
-const Spec = require("../Spec")
+local Locale = require("@localeblox/Locale")
+local Spec = require("../Spec")
 
 Spec.test("a region collapses onto its language", function()
 	Spec.equal(Locale.localeFor("en-us"), "en")
@@ -50,7 +50,7 @@ end)
 
 Spec.test("every locale routes to itself, and there are twenty-five", function()
 	Spec.equal(#Locale.ALL, 25)
-	const seen: { [string]: boolean } = {}
+	local seen: { [string]: boolean } = {}
 	for _, locale in Locale.ALL do
 		Spec.equal(Locale.localeFor(locale), locale, locale)
 		Spec.equal(seen[locale], nil, `{locale} listed once`)
@@ -66,7 +66,7 @@ Spec.test("only Arabic is written right to left", function()
 end)
 
 Spec.test("a lookup falls back from the locale to English to the key", function()
-	const router = Locale.router({
+	local router = Locale.router({
 		en = { feed = "Feed", close = "Close" },
 		ru = { feed = "RU feed" },
 	})
@@ -78,7 +78,7 @@ Spec.test("a lookup falls back from the locale to English to the key", function(
 end)
 
 Spec.test("keys and populated are sorted and say only what is shipped", function()
-	const router = Locale.router({
+	local router = Locale.router({
 		ru = { feed = "RU feed" },
 		en = { feed = "Feed", close = "Close", away = "Away" },
 	})

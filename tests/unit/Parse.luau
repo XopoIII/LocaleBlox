@@ -1,9 +1,9 @@
 --!strict
 --- Tables read out of a Luau source as text.
-const Parse = require("@localeblox/Parse")
-const Spec = require("../Spec")
+local Parse = require("@localeblox/Parse")
+local Spec = require("../Spec")
 
-const SOURCE = table.concat({
+local SOURCE = table.concat({
 	"--!strict",
 	"type Table = { [string]: string }",
 	"",
@@ -15,7 +15,7 @@ const SOURCE = table.concat({
 	"}",
 	"",
 	'\tstray = "outside any table",',
-	"const zhHans: Locale.Table = {",
+	"local zhHans: Locale.Table = {",
 	'\tfeed = "ZH feed",',
 	"}",
 	"local helper = {",
@@ -25,7 +25,7 @@ const SOURCE = table.concat({
 }, "\n")
 
 Spec.test("every table of a source is read, one key a line", function()
-	const out: Parse.Locales = {}
+	local out: Parse.Locales = {}
 	Parse.source(SOURCE, out)
 	Spec.equal(out, {
 		en = { feed = "Feed", level = "Lv %d", quoted = 'say \\"hi\\", now' },
@@ -35,14 +35,14 @@ Spec.test("every table of a source is read, one key a line", function()
 end)
 
 Spec.test("an alias renames a table to its locale code", function()
-	const out: Parse.Locales = {}
+	local out: Parse.Locales = {}
 	Parse.source(SOURCE, out, { zhHans = "zh-hans" })
 	Spec.equal(out["zh-hans"], { feed = "ZH feed" })
 	Spec.equal(out.zhHans, nil)
 end)
 
 Spec.test("two sources add up, and Windows line ends are read", function()
-	const out: Parse.Locales = {}
+	local out: Parse.Locales = {}
 	Parse.source('local en = {\r\n\tfeed = "Feed",\r\n}\r\n', out)
 	Parse.source('local en = {\n\tclose = "Close",\n}\nlocal ru = {\n\tfeed = "RU",\n}', out)
 	Spec.equal(out, { en = { feed = "Feed", close = "Close" }, ru = { feed = "RU" } })
@@ -54,14 +54,15 @@ Spec.test("specifiers are read in order, and an escaped percent is not one", fun
 	Spec.equal(Parse.specifiers("100%% done"), {})
 	Spec.equal(Parse.specifiers("%d%% of %s"), { "%d", "%s" })
 	Spec.equal(Parse.specifiers("Feed"), {})
+	Spec.equal(Parse.specifiers("Save 50% today"), {}, "a lone percent of plain text is not one")
 end)
 
 Spec.test("a table's type may be any type written on its opening line, or none", function()
-	const source = table.concat({
+	local source = table.concat({
 		"local names: { [string]: string } = {",
 		'\tGoldbun = "RU goldbun",',
 		"}",
-		"const plain = {",
+		"local plain = {",
 		'\ta = "1",',
 		"}",
 		"local dotted: Locale.Table = {",
@@ -71,7 +72,7 @@ Spec.test("a table's type may be any type written on its opening line, or none",
 		'\tc = "3",',
 		"}",
 	}, "\n")
-	const out: Parse.Locales = {}
+	local out: Parse.Locales = {}
 	Parse.source(source, out, { names = "ru" })
 	Spec.equal(out, {
 		ru = { Goldbun = "RU goldbun" },
@@ -83,7 +84,7 @@ end)
 
 Spec.test("only a line that declares one table and opens it is an opening", function()
 	Spec.equal(Parse.opens("local en: Table = {"), "en")
-	Spec.equal(Parse.opens("const en = {"), "en")
+	Spec.equal(Parse.opens("local en = {"), "en")
 	Spec.equal(Parse.opens("local  en  :  { [string]: string }  =  {  "), "en", "spaces do not matter")
 	Spec.equal(Parse.opens("local en: Table = {}"), nil, "opened and closed at once")
 	Spec.equal(Parse.opens("local en: Table = other"), nil, "not a table")
@@ -91,7 +92,7 @@ Spec.test("only a line that declares one table and opens it is an opening", func
 	Spec.equal(Parse.opens("local en: Table = f() == {"), nil, "a comparison is not a declaration")
 	Spec.equal(Parse.opens("\tlocal en = {"), nil, "indented: not at the top")
 	Spec.equal(Parse.opens("localen = {"), nil, "local is a word")
-	Spec.equal(Parse.opens("constant = {"), nil, "const is a word")
+	Spec.equal(Parse.opens("localize = {"), nil, "local is a word")
 	Spec.equal(Parse.opens("en = {"), nil, "an assignment declares nothing")
 end)
 

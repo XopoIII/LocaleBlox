@@ -5,12 +5,12 @@
 --- category (`Text.count`). Russian, Ukrainian and Polish have three integer forms, Arabic six,
 --- French counts zero with one. A language whose noun does not change with the number (Chinese,
 --- Japanese, Korean, Thai, Vietnamese, Malay, Indonesian, Turkish after a numeral) is "other".
-const Plural = {}
+local Plural = {}
 
 export type Category = "zero" | "one" | "two" | "few" | "many" | "other"
 
-const function eastSlavic(n: number): Category
-	const m10, m100 = n % 10, n % 100
+local function eastSlavic(n: number): Category
+	local m10, m100 = n % 10, n % 100
 	if m10 == 1 and m100 ~= 11 then
 		return "one"
 	end
@@ -20,18 +20,18 @@ const function eastSlavic(n: number): Category
 	return "many"
 end
 
-const function polish(n: number): Category
+local function polish(n: number): Category
 	if n == 1 then
 		return "one"
 	end
-	const m10, m100 = n % 10, n % 100
+	local m10, m100 = n % 10, n % 100
 	if m10 >= 2 and m10 <= 4 and not (m100 >= 12 and m100 <= 14) then
 		return "few"
 	end
 	return "many"
 end
 
-const function arabic(n: number): Category
+local function arabic(n: number): Category
 	if n == 0 then
 		return "zero"
 	end
@@ -41,7 +41,7 @@ const function arabic(n: number): Category
 	if n == 2 then
 		return "two"
 	end
-	const m100 = n % 100
+	local m100 = n % 100
 	if m100 >= 3 and m100 <= 10 then
 		return "few"
 	end
@@ -52,7 +52,7 @@ const function arabic(n: number): Category
 end
 
 -- The languages where only a count of exactly one differs from the rest.
-const ONE_OTHER: { [string]: boolean } = {
+local ONE_OTHER: { [string]: boolean } = {
 	en = true,
 	de = true,
 	nl = true,
@@ -65,9 +65,13 @@ const ONE_OTHER: { [string]: boolean } = {
 	fil = true,
 }
 
---> The category of `n` in `locale`. `n` is taken as a whole, non-negative number.
+--> The category of `n` in `locale`. A fractional count is always "other": by CLDR a fraction
+--> agrees with no noun ("1.5 pieces", never "1.5 piece"). A whole count is taken unsigned.
 function Plural.category(locale: string, n: number): Category
-	const count = math.floor(math.abs(n))
+	if n % 1 ~= 0 then
+		return "other"
+	end
+	local count = math.abs(n)
 	if locale == "ru" or locale == "uk" then
 		return eastSlavic(count)
 	elseif locale == "pl" then
@@ -82,4 +86,4 @@ function Plural.category(locale: string, n: number): Category
 	return "other"
 end
 
-return Plural
+return table.freeze(Plural)

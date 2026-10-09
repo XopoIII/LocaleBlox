@@ -4,12 +4,12 @@
 --- The suite is meant for LuneBlox: Lune running the Luau version Roblox runs, with Roblox's fast
 --- flags. On another runtime the specs still run, but a result there checks a VM no game runs, so it
 --- says so loudly instead of quietly passing.
-const fs = require("@lune/fs")
-const stdio = require("@lune/stdio")
+local fs = require("@lune/fs")
+local stdio = require("@lune/stdio")
 
-const Runtime = {}
+local Runtime = {}
 
-const function pinned(): string?
+local function pinned(): string?
 	if not fs.isFile("rokit.toml") then
 		return nil
 	end

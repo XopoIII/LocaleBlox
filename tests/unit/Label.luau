@@ -1,15 +1,15 @@
 --!strict
 --- A server's text on an instance, written as a sentence, and the client's rewrite of it.
-const serde = require("@lune/serde")
+local serde = require("@lune/serde")
 
-const Label = require("@localeblox/Label")
-const Localize = require("@localeblox/Localize")
-const Said = require("@localeblox/Said")
-const Spec = require("../Spec")
-const Text = require("@localeblox/Text")
-const World = require("../fakes/World")
+local Label = require("@localeblox/Label")
+local Localize = require("@localeblox/Localize")
+local Said = require("@localeblox/Said")
+local Spec = require("../Spec")
+local Text = require("@localeblox/Text")
+local World = require("../fakes/World")
 
-const said = Said.new({
+local said = Said.new({
 	encode = function(value: any): string
 		return serde.encode("json", value)
 	end,
@@ -18,22 +18,22 @@ const said = Said.new({
 	end,
 })
 
-const TABLES = {
+local TABLES = {
 	en = { priceOf = "%s costs %s", open = "Open", zoneHarbour = "Harbour", level = "Lv %d" },
 	ru = { priceOf = "RU %s costs %s", open = "RU open", zoneHarbour = "RU harbour", level = "RU lv %d" },
 }
-const PETS = { ru = { Goldbun = "RU goldbun" } }
-const english = Text.new({ tables = TABLES, names = { pet = PETS }, localeId = "en" })
-const russian = Text.new({ tables = TABLES, names = { pet = PETS }, localeId = "ru" })
+local PETS = { ru = { Goldbun = "RU goldbun" } }
+local english = Text.new({ tables = TABLES, names = { pet = PETS }, localeId = "en" })
+local russian = Text.new({ tables = TABLES, names = { pet = PETS }, localeId = "ru" })
 
-const function labels(): Label.Label
+local function labels(): Label.Label
 	return Label.new({ said = said, english = english })
 end
 
 Spec.test("a label writes the English, the sentence in an attribute, and the tag", function()
-	const world = World.new()
-	const sign = world.instance({ Text = "", Name = "Sign" })
-	const label = labels()
+	local world = World.new()
+	local sign = world.instance({ Text = "", Name = "Sign" })
+	local label = labels()
 	label.set(sign, "Text", "priceOf", { { pet = "Goldbun" }, "12K" })
 	Spec.equal(sign.Text, "Goldbun costs 12K", "English, the name as its id")
 	Spec.equal(sign:GetAttribute("Said_Text"), said.encode("priceOf", { { pet = "Goldbun" }, "12K" }))
@@ -43,7 +43,7 @@ Spec.test("a label writes the English, the sentence in an attribute, and the tag
 end)
 
 Spec.test("a sentence with no arguments is its template, and a key argument is looked up", function()
-	const label = labels()
+	local label = labels()
 	Spec.equal(label.english("open"), "Open")
 	Spec.equal(label.english("open", {}), "Open")
 	Spec.equal(label.english("level"), "Lv %d", "a template with no arguments is as written")
@@ -52,16 +52,16 @@ Spec.test("a sentence with no arguments is its template, and a key argument is l
 end)
 
 Spec.test("a sentence whose arguments do not fit reads as its template, and raises nothing", function()
-	const label = labels()
+	local label = labels()
 	Spec.equal(label.english("level", { "seven" }), "Lv %d", "text where a number belongs")
 	Spec.equal(label.english("priceOf", { "one" }), "%s costs %s", "an argument short")
 	Spec.equal(label.english("priceOf", { { unknown = "x" }, "5" }), "%s costs %s", "a table no reader knows")
 end)
 
 Spec.test("setting the same sentence again does nothing", function()
-	const world = World.new()
-	const sign = world.instance({ Text = "" })
-	const label = labels()
+	local world = World.new()
+	local sign = world.instance({ Text = "" })
+	local label = labels()
 	local changes = 0
 	sign.AttributeChanged:Connect(function()
 		changes += 1
@@ -79,9 +79,9 @@ Spec.test("setting the same sentence again does nothing", function()
 end)
 
 Spec.test("plain text drops the sentence its property carried", function()
-	const world = World.new()
-	const sign = world.instance({ Text = "", Hint = "" })
-	const label = labels()
+	local world = World.new()
+	local sign = world.instance({ Text = "", Hint = "" })
+	local label = labels()
 	label.set(sign, "Text", "open")
 	label.set(sign, "Hint", "level", { 2 })
 	label.plain(sign, "Text", "1,250")
@@ -91,9 +91,9 @@ Spec.test("plain text drops the sentence its property carried", function()
 end)
 
 Spec.test("a game's own tag and prefix are used on both sides", function()
-	const world = World.new()
-	const sign = world.instance({ Text = "" })
-	const label = Label.new({ said = said, english = english, tag = "Worded", prefix = "Line_" })
+	local world = World.new()
+	local sign = world.instance({ Text = "" })
+	local label = Label.new({ said = said, english = english, tag = "Worded", prefix = "Line_" })
 	label.set(sign, "Text", "open")
 	Spec.equal(sign:HasTag("Worded"), true)
 	Spec.equal(sign:HasTag("Localized"), false)
@@ -104,13 +104,13 @@ Spec.test("a game's own tag and prefix are used on both sides", function()
 end)
 
 Spec.test("the client rewrites what is there and what comes, in its own language", function()
-	const world = World.new()
-	const label = labels()
-	const before = world.instance({ Text = "" })
+	local world = World.new()
+	local label = labels()
+	local before = world.instance({ Text = "" })
 	label.set(before, "Text", "priceOf", { { pet = "Goldbun" }, "12K" })
 	Localize.start({ said = said, text = russian, collection = world.collection })
 	Spec.equal(before.Text, "RU RU goldbun costs 12K", "an instance tagged before the client ran")
-	const after = world.instance({ Text = "", ActionText = "" })
+	local after = world.instance({ Text = "", ActionText = "" })
 	label.set(after, "Text", "open")
 	label.set(after, "ActionText", "level", { 4 })
 	Spec.equal(after.Text, "RU open", "an instance tagged later")
@@ -118,9 +118,9 @@ Spec.test("the client rewrites what is there and what comes, in its own language
 end)
 
 Spec.test("the server saying something new is drawn anew", function()
-	const world = World.new()
-	const label = labels()
-	const sign = world.instance({ Text = "" })
+	local world = World.new()
+	local label = labels()
+	local sign = world.instance({ Text = "" })
 	Localize.start({ said = said, text = russian, collection = world.collection })
 	label.set(sign, "Text", "open")
 	Spec.equal(sign.Text, "RU open")
@@ -128,9 +128,19 @@ Spec.test("the server saying something new is drawn anew", function()
 	Spec.equal(sign.Text, "RU lv 9")
 end)
 
+Spec.test("a destroyed instance drops the label's listeners", function()
+	local world = World.new()
+	local sign = world.instance({ Text = "" })
+	Localize.start({ said = said, text = russian, collection = world.collection })
+	labels().set(sign, "Text", "open")
+	Spec.equal(sign.AttributeChanged.count() > 0, true, "the label listens")
+	world.destroy(sign)
+	Spec.equal(sign.AttributeChanged.count(), 0, "a dead sign keeps no listener")
+end)
+
 Spec.test("the server's English landing after its attribute is put back into the reader's language", function()
-	const world = World.new()
-	const sign = world.instance({ Text = "" })
+	local world = World.new()
+	local sign = world.instance({ Text = "" })
 	Localize.start({ said = said, text = russian, collection = world.collection })
 	labels().set(sign, "Text", "open")
 	-- Replication may deliver the property after the attribute.
@@ -139,9 +149,9 @@ Spec.test("the server's English landing after its attribute is put back into the
 end)
 
 Spec.test("plain text is left alone by the client", function()
-	const world = World.new()
-	const label = labels()
-	const sign = world.instance({ Text = "" })
+	local world = World.new()
+	local label = labels()
+	local sign = world.instance({ Text = "" })
 	Localize.start({ said = said, text = russian, collection = world.collection })
 	label.set(sign, "Text", "open")
 	label.plain(sign, "Text", "1,250")
@@ -149,8 +159,8 @@ Spec.test("plain text is left alone by the client", function()
 end)
 
 Spec.test("an attribute that is no sentence, or names no property, costs nothing", function()
-	const world = World.new()
-	const sign = world.instance({ Text = "kept" })
+	local world = World.new()
+	local sign = world.instance({ Text = "kept" })
 	Localize.start({ said = said, text = russian, collection = world.collection })
 	sign:SetAttribute("Said_Text", "not a sentence")
 	sign:SetAttribute("Said_Missing", said.encode("open"))
@@ -165,8 +175,8 @@ Spec.test("an attribute that is no sentence, or names no property, costs nothing
 end)
 
 Spec.test("an instance is watched once, and forgotten when it is destroyed", function()
-	const world = World.new()
-	const sign = world.instance({ Text = "" })
+	local world = World.new()
+	local sign = world.instance({ Text = "" })
 	Localize.start({ said = said, text = russian, collection = world.collection })
 	labels().set(sign, "Text", "open")
 	Spec.equal(sign.AttributeChanged.count(), 1, "one listener for its attributes")

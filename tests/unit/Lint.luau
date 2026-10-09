@@ -1,12 +1,12 @@
 --!strict
 --- The tables agree with each other, or the lint says where they do not.
-const Lint = require("@localeblox/Lint")
-const Locale = require("@localeblox/Locale")
-const Spec = require("../Spec")
+local Lint = require("@localeblox/Lint")
+local Locale = require("@localeblox/Locale")
+local Spec = require("../Spec")
 
-const SIMPLIFIED_DOOR, TRADITIONAL_DOOR = utf8.char(0x95E8), utf8.char(0x9580)
-const HAN = utf8.char(0x86C1)
-const FULL_BANG = utf8.char(0xFF01)
+local SIMPLIFIED_DOOR, TRADITIONAL_DOOR = utf8.char(0x95E8), utf8.char(0x9580)
+local HAN = utf8.char(0x86C1)
+local FULL_BANG = utf8.char(0xFF01)
 
 Spec.test("tables that agree are clean", function()
 	Spec.equal(
@@ -25,7 +25,7 @@ Spec.test("tables that agree are clean", function()
 end)
 
 Spec.test("tables keyed by a locale type are read as tables keyed by a string are", function()
-	const tables: Locale.Tables = { en = { feed = "Feed", close = "Close" }, ru = { feed = "RU" } }
+	local tables: Locale.Tables = { en = { feed = "Feed", close = "Close" }, ru = { feed = "RU" } }
 	Spec.equal(Lint.tables(tables), { 'ru: missing key "close"' })
 end)
 
@@ -124,13 +124,13 @@ Spec.test("plural forms are held to English's key, placeholders and categories",
 end)
 
 Spec.test("a kind's names: every locale names every id, once, and not with a word of its UI", function()
-	const names = {
+	local names = {
 		ru = { Goldbun = "RU goldbun", Stormpuff = "RU stormpuff", Pipkin = "RU pipkin" },
 		ja = { Goldbun = "JA goldbun", Stormpuff = "JA goldbun", Pipkin = "", Oldling = "JA oldling" },
 		de = { Goldbun = "Schliessen", Stormpuff = "DE stormpuff", Pipkin = "DE pipkin" },
 	}
-	const ids = { "Goldbun", "Stormpuff", "Pipkin" }
-	const ui = { en = { close = "Close" }, de = { close = "SCHLIESSEN" }, ru = { close = "RU close" } }
+	local ids = { "Goldbun", "Stormpuff", "Pipkin" }
+	local ui = { en = { close = "Close" }, de = { close = "SCHLIESSEN" }, ru = { close = "RU close" } }
 	Spec.equal(Lint.names(names, ids, ui, { "ru", "ja", "de", "fr" }), {
 		'names/de.Goldbun: "Schliessen" is the same word as de.close',
 		"names/fr: no table",
@@ -141,7 +141,7 @@ Spec.test("a kind's names: every locale names every id, once, and not with a wor
 end)
 
 Spec.test("names that are whole and apart have nothing to say", function()
-	const names = { ru = { Goldbun = "RU goldbun", Pipkin = "RU pipkin" } }
+	local names = { ru = { Goldbun = "RU goldbun", Pipkin = "RU pipkin" } }
 	Spec.equal(Lint.names(names, { "Goldbun", "Pipkin" }), {})
 	Spec.equal(Lint.names(names, { "Goldbun", "Pipkin" }, nil, { "ru" }), {})
 	Spec.equal(Lint.names({}, { "Goldbun" }), {}, "no tables given, none asked for")
@@ -152,7 +152,7 @@ Spec.test("a names problem says where the game keeps them, and an id the table l
 		"petnames/ru.Goldbun: missing (it would show its id)",
 	})
 	-- A name is compared with its own locale's words only, whatever their case.
-	const ui = { ru = { close = "ru GOLDBUN" }, ja = { close = "RU goldbun" } }
+	local ui = { ru = { close = "ru GOLDBUN" }, ja = { close = "RU goldbun" } }
 	Spec.equal(Lint.names({ ru = { Goldbun = "RU goldbun" } }, { "Goldbun" }, ui), {
 		'names/ru.Goldbun: "RU goldbun" is the same word as ru.close',
 	})

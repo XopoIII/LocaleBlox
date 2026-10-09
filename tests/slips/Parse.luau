@@ -1,12 +1,12 @@
 --!strict
 --- The mutants of src/Parse.luau: each a small slip in a rule, and the rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Parse.luau",
-		from = "const code = if aliases ~= nil and aliases[name] ~= nil then aliases[name] else name",
-		to = "const code = name",
+		from = "local code = if aliases ~= nil and aliases[name] ~= nil then aliases[name] else name",
+		to = "local code = name",
 		breaks = "an alias renames a table to its locale code",
 	},
 	{
@@ -17,26 +17,26 @@ const MUTANTS: { Mutant.Mutant } = {
 	},
 	{
 		file = "src/Parse.luau",
-		from = 'const clean = string.gsub(text, "%%%%", "")',
-		to = "const clean = text",
+		from = 'local clean = string.gsub(text, "%%%%", "")',
+		to = "local clean = text",
 		breaks = "an escaped percent is not a specifier",
 	},
 	{
 		file = "src/Parse.luau",
-		from = 'or string.match(line, "^const(%s.*)$")',
-		to = 'or string.match(line, "^konst(%s.*)$")',
-		breaks = "a table declared with const is read",
+		from = 'for specifier in string.gmatch(clean, "%%[-+ #0-9%.]*[cdeEfgGiopqsuxX]") do',
+		to = 'for specifier in string.gmatch(clean, "%%[-+ #0-9%.]*%a") do',
+		breaks = "a lone percent of plain text is not a specifier",
 	},
 	{
 		file = "src/Parse.luau",
-		from = 'const TYPED = "^%s+([%w_]+)%s*:[^=]-=%s*{%s*$"',
-		to = 'const TYPED = "^%s+([%w_]+)%s*:[%w_%.]-=%s*{%s*$"',
+		from = 'local TYPED = "^%s+([%w_]+)%s*:[^=]-=%s*{%s*$"',
+		to = 'local TYPED = "^%s+([%w_]+)%s*:[%w_%.]-=%s*{%s*$"',
 		breaks = "a table's type may be any type written on its opening line",
 	},
 	{
 		file = "src/Parse.luau",
-		from = 'const TYPED = "^%s+([%w_]+)%s*:[^=]-=%s*{%s*$"',
-		to = 'const TYPED = "^%s+([%w_]+)%s*:.-=%s*{%s*$"',
+		from = 'local TYPED = "^%s+([%w_]+)%s*:[^=]-=%s*{%s*$"',
+		to = 'local TYPED = "^%s+([%w_]+)%s*:.-=%s*{%s*$"',
 		breaks = "a comparison is not a declaration",
 	},
 	{

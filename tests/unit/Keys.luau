@@ -1,7 +1,7 @@
 --!strict
 --- The text key of a piece of game data.
-const Keys = require("@localeblox/Keys")
-const Spec = require("../Spec")
+local Keys = require("@localeblox/Keys")
+local Spec = require("../Spec")
 
 Spec.test("a kind and a name make a camel-cased key", function()
 	Spec.equal(Keys.of("food", "sugar"), "foodSugar")

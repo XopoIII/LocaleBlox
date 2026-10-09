@@ -57,8 +57,9 @@ This is the reason the package exists, and the rule a change is checked against 
 
 ## Modern Luau: the version Roblox runs
 
-- **`const`** for every binding that is never reassigned, including requires, module tables and
-  functions (`const function`). `local` only for a binding that really is reassigned.
+- **Stock Luau only.** `local` for every binding; no keyword or syntax a stock Luau VM would not
+  parse. The package targets Roblox, and Roblox runs stock Luau: a file that only LuneBlox's
+  dialect accepts is a file no game can load.
 - **String requires**: `require("./Sibling")` between modules and `require("@self/Module")` in
   `init.luau`, so the same files load in Roblox and on LuneBlox.
 - **The new type solver.** `scripts/type-check.sh` runs luau-lsp with `LuauSolverV2`, as Studio

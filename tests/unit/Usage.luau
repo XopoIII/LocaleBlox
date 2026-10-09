@@ -1,15 +1,24 @@
 --!strict
 --- The code and the English table name the same keys.
-const Spec = require("../Spec")
-const Usage = require("@localeblox/Usage")
+local Spec = require("../Spec")
+local Usage = require("@localeblox/Usage")
 
-const EN = { feedButton = "Feed", closeButton = "Close", foodSugar = "Sugar", foodCake = "Cake" }
+local EN = { feedButton = "Feed", closeButton = "Close", foodSugar = "Sugar", foodCake = "Cake" }
 
 Spec.test("code that names exactly the keys is clean", function()
 	Spec.equal(
 		Usage.check(EN, {
 			{ path = "a.luau", text = 'text.get("feedButton")\nlocal other = "notAKey"\nlocal plain = "feed"' },
 			{ path = "b.luau", text = 'text.get("closeButton") text.get("foodSugar") text.get("foodCake")' },
+		}),
+		{}
+	)
+end)
+
+Spec.test("a key may stand in single quotes or a backtick string", function()
+	Spec.equal(
+		Usage.check(EN, {
+			{ path = "a.luau", text = "get('feedButton') get(`closeButton`) get(`foodSugar`) get(\"foodCake\")" },
 		}),
 		{}
 	)

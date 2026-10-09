@@ -2,7 +2,7 @@
 --- Text a server puts on a replicated instance (a sign, a prompt, a billboard), written as a key
 --- and its arguments rather than finished words, so each client draws it in its own language.
 ---
----     const label = Label.new({ said = said, english = englishReader })
+---     local label = Label.new({ said = said, english = englishReader })
 ---     label.set(sign, "Text", "priceOf", { { pet = "Goldbun" }, "12K" })
 ---
 --- `set` tags the instance and stores the sentence in an attribute named after the property
@@ -13,10 +13,10 @@
 ---
 --- The instance is whatever the game hands in. This module calls `GetAttribute`, `SetAttribute`
 --- and `AddTag` on it and writes the property; it reads no service and never touches `game`.
-const Said = require("./Said")
-const Text = require("./Text")
+local Said = require("./Said")
+local Text = require("./Text")
 
-const Label = {}
+local Label = {}
 
 --> The tag and the attribute prefix used when a game names none.
 Label.TAG = "Localized"
@@ -48,12 +48,12 @@ export type Label = {
 
 --> One game's labels.
 function Label.new(options: Options): Label
-	const said = options.said
-	const reader = options.english
-	const tag = options.tag or Label.TAG
-	const prefix = options.prefix or Label.PREFIX
+	local said = options.said
+	local reader = options.english
+	local tag = options.tag or Label.TAG
+	local prefix = options.prefix or Label.PREFIX
 
-	const self = {} :: Label
+	local self = {} :: Label
 	self.tag = tag
 	self.prefix = prefix
 
@@ -61,13 +61,13 @@ function Label.new(options: Options): Label
 		if args == nil or #args == 0 then
 			return reader.get(key)
 		end
-		const ok, text = pcall(reader.get, key, table.unpack(args))
-		return if ok then text else reader.get(key)
+		-- The reader never raises: a sentence that does not fit reads as its bare template.
+		return reader.get(key, table.unpack(args))
 	end
 
 	function self.set(instance: any, property: string, key: string, args: { Said.Arg }?)
-		const encoded = said.encode(key, args)
-		const attribute = prefix .. property
+		local encoded = said.encode(key, args)
+		local attribute = prefix .. property
 		if instance:GetAttribute(attribute) == encoded then
 			return
 		end
@@ -84,4 +84,4 @@ function Label.new(options: Options): Label
 	return self
 end
 
-return Label
+return table.freeze(Label)

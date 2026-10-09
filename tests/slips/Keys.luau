@@ -1,8 +1,8 @@
 --!strict
 --- The mutants of src/Keys.luau: each a small slip in a rule, and the rule it breaks.
-const Mutant = require("./Mutant")
+local Mutant = require("./Mutant")
 
-const MUTANTS: { Mutant.Mutant } = {
+local MUTANTS: { Mutant.Mutant } = {
 	{
 		file = "src/Keys.luau",
 		from = 'out = string.gsub(out, "[^%w]", "")',
