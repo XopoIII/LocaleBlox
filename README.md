@@ -9,7 +9,7 @@ formats a key into a sentence, makes a noun agree with its number, and checks th
 holds every key with the same placeholders, in its own script. There is no `LocalizationService`,
 no cloud table and nothing to upload.
 
-> **Status: 0.4.0.** Every rule is proven by specs that run on every push, and each of 206 small
+> **Status: 0.4.1.** Every rule is proven by specs that run on every push, and each of 206 small
 > slips in them makes the suite fail (`tests/Mutate.luau`). The whole library is plain Luau and
 > runs on LuneBlox, the Luau version Roblox runs. One game has run on it live since 0.2.0; before
 > each release its own tables and lint are run against the new sources and compared with the old.
@@ -24,7 +24,7 @@ or pin it exactly in `pesde.toml`:
 
 ```toml
 [dependencies]
-LocaleBlox = { name = "xopoiii/localeblox", version = "=0.4.0", target = "roblox" }
+LocaleBlox = { name = "xopoiii/localeblox", version = "=0.4.1", target = "roblox" }
 ```
 
 LocaleBlox has no dependencies. It reads no Roblox service, so the same modules load on the
