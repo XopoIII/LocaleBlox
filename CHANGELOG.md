@@ -3,6 +3,17 @@
 Every release is listed here, newest first. The format follows Keep a Changelog, and versions follow
 semantic versioning.
 
+## 0.4.2 - 2026-10-25
+
+A maintenance release. The package holds the same files of `src/` as 0.4.1: a game that moves to
+it changes a version number.
+
+### Changed
+
+- **The toolchain is at its latest releases**: LuneBlox 0.11.1, StyLua 2.6.0 and lefthook 2.2.2.
+  StyLua 2.6.0 leaves the tree as it was. LuneBlox 0.11.1's `setup` declares no globals here, since
+  the editor settings keep the Roblox types, so every `Enum` stays checked against them.
+
 ## 0.4.1 - 2026-10-10
 
 A maintenance release. The package holds the same files of `src/` as 0.4.0: a game that moves to
