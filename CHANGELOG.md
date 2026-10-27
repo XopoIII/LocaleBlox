@@ -3,6 +3,17 @@
 Every release is listed here, newest first. The format follows Keep a Changelog, and versions follow
 semantic versioning.
 
+## 0.4.4 - 2026-10-27
+
+A maintenance release. The package holds the same files of `src/` as 0.4.3: a game that moves to
+it changes a version number.
+
+### Changed
+
+- **The specs run on LuneBlox 0.11.3**, from 0.11.2. It adds reverse Roblox property migrations,
+  optional OCALE conformance tooling and compression security fixes. The `@lune` alias in `.luaurc`
+  follows it.
+
 ## 0.4.3 - 2026-10-25
 
 A maintenance release. The package holds the same files of `src/` as 0.4.2: a game that moves to
