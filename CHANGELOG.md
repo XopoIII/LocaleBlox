@@ -3,6 +3,18 @@
 Every release is listed here, newest first. The format follows Keep a Changelog, and versions follow
 semantic versioning.
 
+## 0.4.5 - 2026-11-06
+
+A maintenance release. The package holds the same files of `src/` as 0.4.4: a game that moves to
+it changes a version number.
+
+### Changed
+
+- **The specs run on LuneBlox 0.11.4**, from 0.11.3. It fixes numeric attribute precision, empty
+  model DOM cleanup and conditional-spill bookkeeping, and refreshes fast flags against Roblox
+  client 0.746. The `@lune` alias in `.luaurc` follows it. Every other tool and CI action was
+  checked against its latest stable release and stays at its current pin.
+
 ## 0.4.4 - 2026-10-27
 
 A maintenance release. The package holds the same files of `src/` as 0.4.3: a game that moves to
